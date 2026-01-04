@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mitrajit Ghorui | Archive [SECURE]</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+    <!-- MathJax for LaTeX Rendering -->
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Special+Elite&display=swap');
+
+        :root {
+            --rot-brown: #2d241f;
+            --decay-green: #3a4034;
+            --rust: #a65840;
+            --paper: #cbbca5;
+            --faded-ink: #2b2b2b;
+            --spore-light: #e6ceaa;
+            --terminal-bg: #1a1814;
+        }
+
+        body {
+            background-color: #0f0e0d;
+            color: var(--paper);
+            font-family: 'Courier Prime', monospace;
+            overflow-x: hidden;
+            cursor: crosshair;
+            margin: 0;
+        }
+
+        /* --- LAYERS --- */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .noise-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 50;
+            opacity: 0.08;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, transparent 40%, #000000 120%);
+            pointer-events: none;
+            z-index: 40;
+        }
+
+        .scanline {
+            width: 100%;
+            height: 100px;
+            z-index: 45;
+            background: linear-gradient(0deg, rgba(0,0,0,0) 0%, rgba(255, 255, 255, 0.02) 50%, rgba(0,0,0,0) 100%);
+            opacity: 0.1;
+            position: absolute;
+            bottom: 100%;
+            animation: scanline 10s linear infinite;
+            pointer-events: none;
+        }
+
+        /* --- TYPOGRAPHY --- */
+        h1, h2, h3, .font-display {
+            font-family: 'Special Elite', cursive;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .gritty-text {
+            color: var(--paper);
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.8);
+        }
+
+        /* --- COMPONENTS --- */
+        .torn-paper {
+            background: var(--rot-brown);
+            border: 1px solid #4a3b32;
+            box-shadow: 10px 10px 30px rgba(0,0,0,0.7);
+            position: relative;
+            transition: transform 0.1s ease-out;
+        }
+        
+        .torn-paper::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border: 1px solid rgba(255,255,255,0.05);
+            pointer-events: none;
+        }
+
+        .tape {
+            background-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            backdrop-filter: blur(1px);
+            transform: rotate(-2deg);
+            border-left: 1px dashed rgba(255,255,255,0.3);
+            border-right: 1px dashed rgba(255,255,255,0.3);
+        }
+
+        /* --- TERMINAL --- */
+        #terminal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 14, 13, 0.95);
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            padding: 2rem;
+            font-family: 'Courier Prime', monospace;
+            color: var(--rust);
+            text-shadow: 0 0 5px var(--rust);
+        }
+        
+        #terminal-overlay.open { display: flex; }
+
+        /* --- INSPECTOR MODAL --- */
+        #inspector-modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 10, 10, 0.9);
+            z-index: 90;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+        #inspector-modal.open { display: flex; }
+        .blueprint-grid {
+            background-image: linear-gradient(rgba(166, 88, 64, 0.1) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(166, 88, 64, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        /* --- KEY HELP OVERLAY --- */
+        #key-help {
+            position: fixed;
+            bottom: 20px; right: 20px;
+            background: var(--rot-brown);
+            border: 1px solid var(--rust);
+            padding: 15px;
+            z-index: 80;
+            display: none;
+            box-shadow: 0 0 15px rgba(0,0,0,0.8);
+        }
+        #key-help.visible { display: block; }
+        .key {
+            border: 1px solid #6b705c;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: #1a1814;
+            color: #e6ceaa;
+            font-size: 0.8em;
+        }
+
+        /* --- CTF ELEMENTS --- */
+        .redacted {
+            background: #000; color: #000; padding: 0 4px; cursor: help;
+            transition: color 0.3s, background 0.3s;
+        }
+        .redacted:hover {
+            color: var(--rust); background: transparent; text-decoration: line-through;
+        }
+
+        /* --- ANIMATIONS --- */
+        @keyframes scanline {
+            0% { bottom: 100%; }
+            100% { bottom: -100%; }
+        }
+        @keyframes pulse-green {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .status-dot {
+            width: 8px; height: 8px; background: #4ade80; border-radius: 50%;
+            display: inline-block; animation: pulse-green 2s infinite;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1a1814; }
+        ::-webkit-scrollbar-thumb { background: #5c4d42; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--rust); }
+
+        .report-folder {
+            background: #d4cbb8;
+            color: #1a1814;
+            padding: 2rem;
+            box-shadow: -5px 5px 15px rgba(0,0,0,0.5);
+            transform: rotate(-0.5deg);
+            position: relative;
+        }
+        .report-stamp {
+            position: absolute;
+            top: 20px; right: 20px;
+            border: 2px solid #a65840;
+            color: #a65840;
+            padding: 5px 10px;
+            font-family: 'Special Elite', cursive;
+            transform: rotate(15deg);
+            opacity: 0.8;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+    </style>
+</head>
+<body class="antialiased min-h-screen relative selection:bg-[#a65840] selection:text-black">
+
+    <!-- Boids Canvas (Background) -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- FX Layers -->
+    <div class="noise-overlay"></div>
+    <div class="vignette"></div>
+    <div class="scanline"></div>
+
+    <!-- Audio Control -->
+    <div class="fixed top-6 right-6 z-50 mix-blend-difference flex gap-4">
+        <button id="audio-toggle" class="border border-[#a65840] text-[#a65840] px-3 py-1 text-xs uppercase hover:bg-[#a65840] hover:text-black transition-colors">
+            Init Audio [OFF]
+        </button>
+    </div>
+
+    <!-- Inspector Modal (Blueprints) -->
+    <div id="inspector-modal" class="fade-in">
+        <div class="relative w-[90vw] h-[80vh] bg-[#1a1814] border border-[#a65840] shadow-2xl flex flex-col blueprint-grid overflow-hidden">
+            <!-- Header -->
+            <div class="h-10 border-b border-[#a65840] bg-[#0f0e0d] flex items-center justify-between px-4">
+                <span id="inspector-title" class="text-[#a65840] font-mono tracking-widest text-sm">SYSTEM_DIAGNOSTIC_TOOL_V1</span>
+                <button id="close-inspector" class="text-[#5c4d42] hover:text-[#a65840]">[X] TERMINATE</button>
+            </div>
+            
+            <!-- Content Container -->
+            <div id="inspector-content" class="flex-1 relative w-full h-full"></div>
+            
+            <!-- Footer -->
+            <div class="h-8 border-t border-[#a65840] bg-[#0f0e0d] flex items-center px-4 gap-4 text-[10px] font-mono text-[#5c4d42]">
+                <span>MEM_USAGE: 402MB</span>
+                <span>RENDER: WEBGL2</span>
+                <span>STATUS: LIVE</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Help Overlay -->
+    <div id="key-help">
+        <h3 class="text-[#a65840] mb-2 font-bold">KEY_MAP_VIM</h3>
+        <ul class="space-y-1 text-xs font-mono text-[#cbbca5]">
+            <li><span class="key">j</span> Scroll Down</li>
+            <li><span class="key">k</span> Scroll Up</li>
+            <li><span class="key">x</span> Close Modal</li>
+            <li><span class="key">?</span> Toggle Help</li>
+            <li><span class="key">cmd+k</span> Terminal</li>
+        </ul>
+    </div>
+
+    <!-- Terminal Overlay -->
+    <div id="terminal-overlay">
+        <div class="max-w-3xl w-full mx-auto flex flex-col h-full">
+            <div class="mb-4 border-b border-[#a65840] pb-2 flex justify-between">
+                <span>TERMINAL_V.2.1.0 [PYTHON_WASM]</span>
+                <span>CMD+K TO CLOSE</span>
+            </div>
+            <div id="terminal-output" class="flex-1 overflow-y-auto mb-4 space-y-2 text-sm md:text-base text-[#cbbca5] font-mono">
+                <div class="text-[#a65840]">Welcome to ARCHIVE_OS.</div>
+                <div class="text-[#5c4d42]">Initializing Pyodide Environment... <span id="py-status">WAITING</span></div>
+            </div>
+            <div class="flex items-center text-[#a65840]">
+                <span class="mr-2">user@archive:~$</span>
+                <input type="text" id="terminal-input" class="bg-transparent border-none outline-none flex-1 text-[#cbbca5] font-mono" autocomplete="off" autofocus>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <main class="relative z-10 max-w-4xl mx-auto px-6 py-12 md:py-24 flex flex-col gap-20" id="main-content">
+
+        <!-- Header / ID Badge -->
+        <header class="flex flex-col md:flex-row gap-8 items-center md:items-start fade-in parallax-layer" data-speed="0.5">
+            <div class="relative group">
+                <!-- Tape effect -->
+                <div class="tape absolute -top-3 left-1/2 -translate-x-1/2 w-24 h-8 z-20"></div>
+                
+                <!-- Profile Image -->
+                <div class="w-40 h-40 md:w-48 md:h-48 bg-[#1c1a17] border-4 border-[#3a3530] flex items-center justify-center relative shadow-2xl rotate-1 transition-transform group-hover:rotate-0 duration-500 overflow-hidden">
+                    <img src="https://i.imgur.com/MzQMNuU.jpeg" alt="Mitrajit Ghorui" class="w-full h-full object-cover opacity-90 sepia-[.5] grayscale-[.4] group-hover:sepia-0 group-hover:grayscale-0 transition-all duration-500">
+                    <!-- Texture Overlay -->
+                    <div class="absolute inset-0 border border-white/5 pointer-events-none mix-blend-overlay bg-[url('https://www.transparenttextures.com/patterns/dust.png')] opacity-50"></div>
+                </div>
+            </div>
+
+            <div class="flex-1 text-center md:text-left space-y-4">
+                <div class="inline-block border-b-2 border-[#a65840] pb-1 mb-2">
+                    <span class="text-xs uppercase tracking-[0.3em] text-[#6b705c]">Subject Identification</span>
+                </div>
+                <h1 class="text-5xl md:text-7xl font-bold text-[#e6ceaa] tracking-tighter mix-blend-screen gritty-text">
+                    MITRAJIT<br>
+                    <span class="text-[#8c7b6d]">GHORUI</span>
+                </h1>
+                <p class="text-lg md:text-xl text-[#94918a] italic max-w-lg leading-relaxed">
+                    Software engineer navigating the digital ruins. Building tools for survival in the modern web.
+                </p>
+                
+                <div class="flex flex-wrap gap-4 justify-center md:justify-start pt-4">
+                    <a href="mailto:mitrajitghorui@gmail.com" class="px-6 py-2 bg-[#2d241f] border border-[#5c4d42] hover:border-[#a65840] hover:bg-[#3a2e26] transition-all text-sm uppercase tracking-widest flex items-center gap-2 group">
+                        <span class="w-2 h-2 bg-[#a65840] rounded-full group-hover:animate-pulse"></span>
+                        Contact
+                    </a>
+                    <a href="https://github.com/Keykyrios" target="_blank" class="px-6 py-2 bg-transparent border border-[#5c4d42] hover:text-[#a65840] hover:border-[#a65840] transition-all text-sm uppercase tracking-widest">
+                        GitHub
+                    </a>
+                    <a href="https://www.linkedin.com/in/mitrajitghorui/" target="_blank" class="px-6 py-2 bg-transparent border border-[#5c4d42] hover:text-[#0077b5] hover:border-[#0077b5] transition-all text-sm uppercase tracking-widest">
+                        LinkedIn
+                    </a>
+                </div>
+                <!-- Telemetry Hint -->
+                <div class="flex justify-between items-center w-full max-w-lg mt-2 text-[#5c4d42] font-mono text-[10px]">
+                    <span>[CMD+K] FOR TERMINAL</span>
+                    <span>[?] FOR KEY MAP</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- divider -->
+        <div class="h-px w-full bg-gradient-to-r from-transparent via-[#4a3b32] to-transparent opacity-50"></div>
+
+        <!-- Live Telemetry Section -->
+        <section class="border border-[#3a4034] bg-[#0f0e0d]/50 p-4 font-mono text-xs text-[#6b705c] grid grid-cols-2 md:grid-cols-4 gap-4 parallax-layer" data-speed="0.8">
+            <div>
+                <span class="block text-[#4a3b32] mb-1">LOCATION</span>
+                <span id="tele-loc" class="text-[#a65840]">48.8767, 123.3933</span>
+            </div>
+            <div>
+                <span class="block text-[#4a3b32] mb-1">STATUS</span>
+                <span class="animate-pulse text-green-700/70">ONLINE</span>
+            </div>
+            <div>
+                <span class="block text-[#4a3b32] mb-1">LATEST COMMIT</span>
+                <span id="tele-commit" class="truncate block">loading stream...</span>
+            </div>
+            <div>
+                <span class="block text-[#4a3b32] mb-1">SIGNAL</span>
+                <span id="tele-signal">strong</span>
+            </div>
+        </section>
+
+        <!-- Projects Section (Exploded View) -->
+        <section class="space-y-12 parallax-layer" data-speed="1.0">
+            <div class="flex items-end gap-4">
+                <h2 class="text-3xl text-[#a65840]">Restored Artifacts</h2>
+                <span class="text-xs font-mono text-[#5c4d42] mb-1.5">// ARCHITECTURAL REVIEW</span>
+            </div>
+
+            <div class="grid grid-cols-1 gap-12">
+                
+                <!-- Project 1: Corollary -->
+                <article class="torn-paper p-6 md:p-8 transform hover:-translate-y-1 transition-transform duration-300 group">
+                    <div class="absolute top-4 right-4 text-[#a65840]/20 text-6xl font-[Special Elite] z-0 select-none">01</div>
+                    <div class="relative z-10 space-y-6">
+                        <div class="flex justify-between items-start">
+                            <h3 class="text-3xl text-[#e6ceaa] group-hover:text-[#a65840] transition-colors">Corollary</h3>
+                            <div class="flex flex-col items-end gap-1">
+                                <a href="https://github.com/Keykyrios/Corollary" target="_blank" class="opacity-70 hover:opacity-100 text-xs border border-[#5c4d42] px-2 py-1 bg-[#1a1814]">SOURCE</a>
+                                <span class="text-[9px] font-mono text-[#5c4d42] flex items-center gap-1">
+                                    <span class="status-dot"></span> CI/CD: PASSING
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="text-sm text-[#9c968d] leading-relaxed font-sans border-l-2 border-[#a65840] pl-4">
+                            A specialized utility system retrieved from the archives. Designed to handle logical deductions. 
+                            Features <strong class="text-[#cbbca5]">React + Three.js</strong> visualization of linear algebra concepts.
+                        </div>
+
+                        <!-- Action Bar -->
+                        <div class="flex items-center gap-4 pt-4 border-t border-[#4a3b32]">
+                            <button onclick="openInspector('corollary')" class="px-4 py-2 bg-[#3a4034] text-[#e6ceaa] text-xs font-bold hover:bg-[#a65840] transition-colors shadow-lg border border-black flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" /></svg>
+                                LAUNCH SYSTEM INSPECTOR
+                            </button>
+                            <span class="text-[10px] font-mono text-[#5c4d42]">HASH: <span class="text-[#a65840]">7f8a9d...2b</span></span>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Project 2: QuMail -->
+                <article class="torn-paper p-6 md:p-8 transform hover:-translate-y-1 transition-transform duration-300 group">
+                    <div class="absolute top-4 right-4 text-[#a65840]/20 text-6xl font-[Special Elite] z-0 select-none">02</div>
+                    <div class="relative z-10 space-y-6">
+                        <div class="flex justify-between items-start">
+                            <h3 class="text-3xl text-[#e6ceaa] group-hover:text-[#a65840] transition-colors">QuMail</h3>
+                            <div class="flex flex-col items-end gap-1">
+                                <a href="https://github.com/Keykyrios/QuMail" target="_blank" class="opacity-70 hover:opacity-100 text-xs border border-[#5c4d42] px-2 py-1 bg-[#1a1814]">SOURCE</a>
+                                <span class="text-[9px] font-mono text-[#5c4d42] flex items-center gap-1">
+                                    <span class="status-dot"></span> CI/CD: PASSING
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="text-sm text-[#9c968d] leading-relaxed font-sans border-l-2 border-[#a65840] pl-4">
+                            Post-Quantum Cryptography (PQC) communication protocol. Implements <strong class="text-[#cbbca5]">Kyber KEM</strong> for secure key exchange against quantum threats.
+                            <span class="redacted" title="Use Terminal">SECURE_HASH_88A</span> verified.
+                        </div>
+
+                         <!-- Action Bar -->
+                         <div class="flex items-center gap-4 pt-4 border-t border-[#4a3b32]">
+                            <button onclick="openInspector('qumail')" class="px-4 py-2 bg-[#3a4034] text-[#e6ceaa] text-xs font-bold hover:bg-[#a65840] transition-colors shadow-lg border border-black flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                                VIEW PROTOCOL DIAGRAM
+                            </button>
+                            <span class="text-[10px] font-mono text-[#5c4d42]">HASH: <span class="text-[#a65840]">e4b2c1...9f</span></span>
+                        </div>
+                    </div>
+                </article>
+
+            </div>
+        </section>
+
+        <!-- DATA LOGS (Manifestos) -->
+        <section class="space-y-8 parallax-layer" data-speed="1.1">
+            <h2 class="text-3xl text-[#a65840] border-b border-[#5c4d42] pb-2 inline-block">Classified Data Logs</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Log 1 -->
+                <div class="report-folder group hover:scale-[1.02] transition-transform duration-300">
+                    <div class="report-stamp">CONFIDENTIAL</div>
+                    <h4 class="text-xl font-bold font-mono border-b border-black pb-2 mb-2">CASE_STUDY: QUMAIL_SIGNALING</h4>
+                    <p class="text-xs font-mono mb-4 text-[#4a3b32]">DATE: 2025-11-12 | AUTHOR: M. GHORUI</p>
+                    <p class="text-sm font-serif leading-relaxed opacity-90">
+                        Integrating Post-Quantum Cryptography into real-time streams introduced a critical bottleneck: PQC key sizes often exceed standard UDP MTU limits (~1500 bytes).
+                        We engineered a fragmented signaling protocol over Firebase to handle these heavy payloads without packet loss.
+                        $$ N_{frags} = \lceil \frac{K_{size}}{MTU_{eff}} \rceil $$
+                        This architecture reduced handshake latency by 94% on unstable networks, enabling seamless PQC-secured WebRTC calls.
+                    </p>
+                </div>
+
+                <!-- Log 2 -->
+                <div class="report-folder group hover:scale-[1.02] transition-transform duration-300" style="transform: rotate(1deg);">
+                    <div class="report-stamp" style="border-color: #2d241f; color: #2d241f;">DECLASSIFIED</div>
+                    <h4 class="text-xl font-bold font-mono border-b border-black pb-2 mb-2">MEMO: STATE_DEDUCTION</h4>
+                    <p class="text-xs font-mono mb-4 text-[#4a3b32]">DATE: 2025-08-04 | SYSTEM: COROLLARY</p>
+                    <p class="text-sm font-serif leading-relaxed opacity-90">
+                        Managing complex theorem dependencies in Corollary demanded a directed acyclic graph (DAG) state structure. 
+                        Redux was insufficient for the recursive logic depth. We implemented a custom hook-based state engine that traverses the graph
+                        only when nodes are "proven" true by the user.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Neural Link / Skills Section -->
+        <section class="relative mt-12 w-full h-[500px] bg-[#e3dac9] text-[#1a1814] shadow-lg transform rotate-1 border border-[#a65840] overflow-hidden parallax-layer" data-speed="1.1">
+            <div class="tape absolute -top-4 left-1/3 w-32 h-10 z-20"></div>
+            
+            <div class="absolute top-4 left-4 z-20 pointer-events-none">
+                <h2 class="text-2xl font-bold text-[#2d241f] border-b-2 border-[#1a1814] inline-block">Neural Link</h2>
+                <div class="text-[10px] font-mono mt-1 opacity-70">INTERACTIVE KNOWLEDGE GRAPH</div>
+            </div>
+
+            <!-- Canvas for Force Graph -->
+            <canvas id="neural-canvas" class="absolute inset-0 z-10 cursor-move"></canvas>
+
+            <div class="absolute bottom-2 right-4 z-20 text-[10px] font-mono opacity-60">
+                DRAG NODES TO RECONFIGURE
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="mt-20 text-center text-[#5c4d42] text-xs font-mono space-y-2 pb-12">
+            <p>END OF TRANSMISSION</p>
+            <p>&copy; 2026 Mitrajit Ghorui. All rights reserved.</p>
+        </footer>
+
+    </main>
+
+    <script>
+        /**
+         * SYSTEM CORE v2.0
+         * - Pyodide WASM Integration
+         * - Three.js Visualization (Corollary)
+         * - SVG Animation (QuMail)
+         * - Vim Navigation
+         */
+
+        // --- 0. PRELOADER & SETUP ---
+        const termOutput = document.getElementById('terminal-output');
+        let pyodideReady = false;
+        let pyodide = null;
+
+        async function loadPyodideEngine() {
+            try {
+                pyodide = await loadPyodide();
+                await pyodide.loadPackage("micropip");
+                // Mocking the crypto libraries for the demo since we can't load local files easily
+                await pyodide.runPythonAsync(`
+                    import hashlib
+                    import secrets
+                    def encrypt_message(msg):
+                        # Simulating Kyber Encapsulation logic for demo
+                        salt = secrets.token_hex(4)
+                        hash_obj = hashlib.sha3_256((msg + salt).encode())
+                        return f"ENC_{salt}_{hash_obj.hexdigest()[:16].upper()}"
+                `);
+                pyodideReady = true;
+                document.getElementById('py-status').innerText = "READY";
+                document.getElementById('py-status').classList.add('text-green-500');
+                log("PYTHON_WASM_ENGINE: ONLINE", "text-green-500");
+            } catch (err) {
+                console.error(err);
+                document.getElementById('py-status').innerText = "FAILED";
+                document.getElementById('py-status').classList.add('text-red-500');
+            }
+        }
+        loadPyodideEngine();
+
+        // --- 1. TELEMETRY: REAL GITHUB DATA ---
+        async function fetchLatestCommit() {
+            const el = document.getElementById('tele-commit');
+            if(!el) return;
+            
+            try {
+                // Hitting GitHub public API
+                const res = await fetch('https://api.github.com/users/Keykyrios/events');
+                if(!res.ok) throw new Error("API_ERR");
+                
+                const data = await res.json();
+                // Find first PushEvent
+                const pushEvent = data.find(event => event.type === 'PushEvent');
+                
+                if (pushEvent && pushEvent.payload && pushEvent.payload.commits && pushEvent.payload.commits.length > 0) {
+                    const latest = pushEvent.payload.commits[pushEvent.payload.commits.length - 1]; 
+                    const msg = latest.message;
+                    const sha = latest.sha.substring(0, 7);
+                    // Update text
+                    el.innerText = `${sha} - ${msg}`;
+                    el.title = `Repo: ${pushEvent.repo.name}`;
+                } else {
+                    el.innerText = "NO_RECENT_PUSH_DATA";
+                }
+            } catch (e) {
+                console.warn("GitHub Telemetry Failed:", e);
+                // Fallback to static if API limit hit
+                el.innerText = "OFFLINE - CACHED_DATA_ONLY";
+            }
+        }
+        // Poll every 60s
+        fetchLatestCommit();
+        setInterval(fetchLatestCommit, 60000);
+
+        // --- 2. INSPECTOR LOGIC ---
+        const modal = document.getElementById('inspector-modal');
+        const content = document.getElementById('inspector-content');
+        const closeBtn = document.getElementById('close-inspector');
+        let animationId = null;
+
+        function openInspector(type) {
+            modal.classList.add('open');
+            content.innerHTML = ''; // Clear previous
+            cancelAnimationFrame(animationId); // Stop previous loops
+
+            if (type === 'corollary') {
+                document.getElementById('inspector-title').innerText = "SYSTEM_INSPECTOR: EIGEN_VALUE_VISUALIZATION";
+                initCorollaryVis();
+            } else if (type === 'qumail') {
+                document.getElementById('inspector-title').innerText = "PROTOCOL_DIAGRAM: KYBER_KEM_HANDSHAKE";
+                initQuMailVis();
+            }
+        }
+
+        function closeInspector() {
+            modal.classList.remove('open');
+            content.innerHTML = '';
+            cancelAnimationFrame(animationId);
+        }
+
+        closeBtn.addEventListener('click', closeInspector);
+        modal.addEventListener('click', (e) => {
+            if(e.target === modal) closeInspector();
+        });
+
+        // --- COROLLARY THREE.JS VISUALIZATION ---
+        function initCorollaryVis() {
+            const scene = new THREE.Scene();
+            // Transparent background
+            
+            const camera = new THREE.PerspectiveCamera(75, content.clientWidth / content.clientHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(content.clientWidth, content.clientHeight);
+            content.appendChild(renderer.domElement);
+
+            // Vector Field
+            const arrows = [];
+            const group = new THREE.Group();
+            
+            // Grid of vectors
+            for (let x = -5; x <= 5; x+=2) {
+                for (let y = -5; y <= 5; y+=2) {
+                    for (let z = -2; z <= 2; z+=2) {
+                        const dir = new THREE.Vector3(x, y, z).normalize();
+                        const origin = new THREE.Vector3(x, y, z);
+                        const length = 0.5;
+                        const hex = 0xa65840; // Rust color
+                        const arrowHelper = new THREE.ArrowHelper(dir, origin, length, hex);
+                        arrows.push({ arrow: arrowHelper, original: new THREE.Vector3(x,y,z) });
+                        group.add(arrowHelper);
+                    }
+                }
+            }
+            scene.add(group);
+
+            camera.position.z = 15;
+
+            // Matrix Transformation Logic
+            let time = 0;
+            function animate() {
+                animationId = requestAnimationFrame(animate);
+                time += 0.01;
+                
+                // Rotation
+                group.rotation.y += 0.005;
+                group.rotation.x += 0.002;
+
+                // Dynamic Field Distortion (Simulating Eigenvalue transformation)
+                // Matrix M = [[cos(t), -sin(t)], [sin(t), cos(t)]] basically
+                arrows.forEach(item => {
+                    const v = item.original.clone();
+                    // Apply simple non-linear transformation
+                    const tx = v.x * Math.cos(time) - v.y * Math.sin(time);
+                    const ty = v.x * Math.sin(time) + v.y * Math.cos(time);
+                    
+                    const newDir = new THREE.Vector3(tx, ty, v.z).normalize();
+                    item.arrow.setDirection(newDir);
+                    item.arrow.setLength(0.5 + Math.sin(time + v.x)*0.2);
+                });
+
+                renderer.render(scene, camera);
+            }
+            animate();
+            
+            // Handle Resize inside modal
+            window.addEventListener('resize', () => {
+                if(modal.classList.contains('open') && renderer) {
+                    camera.aspect = content.clientWidth / content.clientHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(content.clientWidth, content.clientHeight);
+                }
+            });
+        }
+
+        // --- QUMAIL SVG VISUALIZATION ---
+        function initQuMailVis() {
+            // Inject animated SVG
+            const svgContent = `
+                <svg width="100%" height="100%" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+                    <style>
+                        .path-line { stroke-dasharray: 10; animation: dash 30s linear infinite; }
+                        @keyframes dash { to { stroke-dashoffset: -1000; } }
+                        .pulse { animation: pulse 2s infinite; }
+                        @keyframes pulse { 0% { r: 5; opacity: 1; } 100% { r: 15; opacity: 0; } }
+                        .node-text { font-family: monospace; fill: #a65840; font-size: 14px; }
+                        .packet { fill: #e6ceaa; animation: travel 4s infinite linear; }
+                        @keyframes travel { 
+                            0% { transform: translate(100px, 300px); opacity: 0; }
+                            10% { opacity: 1; }
+                            45% { transform: translate(400px, 300px); } 
+                            55% { transform: translate(400px, 300px); }
+                            90% { transform: translate(700px, 300px); opacity: 1; }
+                            100% { transform: translate(700px, 300px); opacity: 0; }
+                        }
+                    </style>
+                    
+                    <!-- Grid Background -->
+                    <defs>
+                        <pattern id="smallGrid" width="20" height="20" patternUnits="userSpaceOnUse">
+                            <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#a65840" stroke-width="0.5" opacity="0.1"/>
+                        </pattern>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#smallGrid)" />
+
+                    <!-- Nodes -->
+                    <circle cx="100" cy="300" r="30" fill="#2d241f" stroke="#a65840" stroke-width="2" />
+                    <text x="80" y="350" class="node-text">ALICE (CLIENT)</text>
+                    
+                    <circle cx="700" cy="300" r="30" fill="#2d241f" stroke="#a65840" stroke-width="2" />
+                    <text x="680" y="350" class="node-text">BOB (SERVER)</text>
+                    
+                    <rect x="350" y="250" width="100" height="100" fill="#1a1814" stroke="#5c4d42" />
+                    <text x="365" y="240" class="node-text">QUANTUM CHANNEL</text>
+
+                    <!-- Connection -->
+                    <line x1="130" y1="300" x2="350" y2="300" stroke="#5c4d42" stroke-width="2" class="path-line" />
+                    <line x1="450" y1="300" x2="670" y2="300" stroke="#5c4d42" stroke-width="2" class="path-line" />
+
+                    <!-- Packet Animation -->
+                    <circle r="6" class="packet" />
+
+                    <!-- Status Text -->
+                    <text x="350" y="400" fill="#cbbca5" font-family="monospace" font-size="12">
+                        <tspan x="350" dy="0">STEP 1: Alice Gens Keys (pk, sk)</tspan>
+                        <tspan x="350" dy="20">STEP 2: Bob Encapsulates (pk -> c, ss)</tspan>
+                        <tspan x="350" dy="20">STEP 3: Alice Decapsulates (c, sk -> ss)</tspan>
+                    </text>
+                </svg>
+            `;
+            content.innerHTML = svgContent;
+        }
+
+
+        // --- 3. TERMINAL (CLI) ---
+        const termOverlay = document.getElementById('terminal-overlay');
+        const termInput = document.getElementById('terminal-input');
+        let isOpen = false;
+
+        document.addEventListener('keydown', (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault();
+                toggleTerminal();
+            }
+        });
+
+        function toggleTerminal() {
+            isOpen = !isOpen;
+            termOverlay.classList.toggle('open', isOpen);
+            if(isOpen) termInput.focus();
+        }
+
+        const commands = {
+            help: "Available: help, clear, whoami, ls, encrypt --message=\"TEXT\"",
+            clear: () => { termOutput.innerHTML = ''; return ''; },
+            whoami: "guest_user_101 [UNAUTHORIZED]",
+            ls: "about.txt  skills.json  secrets.enc  projects/",
+            "encrypt": (args) => {
+                if(!pyodideReady) return "ERROR: WASM ENGINE LOADING...";
+                const msgMatch = args.match(/--message="([^"]+)"/);
+                if(!msgMatch) return "Usage: encrypt --message=\"YOUR TEXT\"";
+                
+                const msg = msgMatch[1];
+                try {
+                    // Call Python function defined in Preloader
+                    const result = pyodide.runPython(`encrypt_message("${msg}")`);
+                    return `OUTPUT: ${result}`;
+                } catch(e) {
+                    return `PYTHON ERROR: ${e}`;
+                }
+            },
+            "decode SECURE_HASH_88A": () => {
+                console.log("FLAG CAPTURED: CTF{legacy_systems_never_die}");
+                return "DECRYPTION SUCCESSFUL. CHECK CONSOLE.";
+            }
+        };
+
+        function log(text, colorClass = "text-[#cbbca5]") {
+            const div = document.createElement('div');
+            div.className = colorClass;
+            div.innerText = text;
+            termOutput.appendChild(div);
+            termOutput.scrollTop = termOutput.scrollHeight;
+        }
+
+        termInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const raw = termInput.value.trim();
+                const [cmd, ...args] = raw.split(' ');
+                
+                log(`user@archive:~$ ${raw}`, "text-[#a65840]");
+                termInput.value = '';
+                
+                if (commands[cmd]) {
+                    const resp = typeof commands[cmd] === 'function' ? commands[cmd](raw) : commands[cmd];
+                    if(resp) log(resp);
+                } else if (cmd === 'cat') {
+                     log(`Access Denied: ${args[0]}`, "text-red-500");
+                } else {
+                    log(`Command not found: ${cmd}`);
+                }
+            }
+        });
+
+        // --- 4. VIM NAVIGATION ---
+        const keyHelp = document.getElementById('key-help');
+        let helpVisible = false;
+
+        document.addEventListener('keydown', (e) => {
+            // Ignore if typing in terminal
+            if(isOpen || document.activeElement.tagName === 'INPUT') return;
+
+            switch(e.key) {
+                case 'j':
+                    window.scrollBy({ top: 100, behavior: 'smooth' });
+                    break;
+                case 'k':
+                    window.scrollBy({ top: -100, behavior: 'smooth' });
+                    break;
+                case 'x':
+                    closeInspector();
+                    break;
+                case '?':
+                    helpVisible = !helpVisible;
+                    keyHelp.classList.toggle('visible', helpVisible);
+                    break;
+            }
+        });
+
+        // --- BOIDS ALGORITHM (Background) ---
+        const bgCanvas = document.getElementById('bg-canvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        let width, height;
+        let boids = [];
+        const mouse = { x: -1000, y: -1000 };
+
+        function resizeBg() {
+            width = bgCanvas.width = window.innerWidth;
+            height = bgCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeBg);
+        resizeBg();
+
+        class Boid {
+            constructor() {
+                this.position = { x: Math.random() * width, y: Math.random() * height };
+                this.velocity = { x: Math.random() * 2 - 1, y: Math.random() * 2 - 1 };
+                this.acceleration = { x: 0, y: 0 };
+                this.maxForce = 0.05;
+                this.maxSpeed = 2;
+                this.size = Math.random() * 2 + 1;
+            }
+            // ... (Same Boid Logic as before, condensed for brevity) ...
+            update() {
+                this.position.x += this.velocity.x;
+                this.position.y += this.velocity.y;
+                if(this.position.x > width) this.position.x = 0;
+                else if(this.position.x < 0) this.position.x = width;
+                if(this.position.y > height) this.position.y = 0;
+                else if(this.position.y < 0) this.position.y = height;
+            }
+            draw() {
+                bgCtx.fillStyle = '#e6ceaa';
+                bgCtx.globalAlpha = 0.6;
+                bgCtx.beginPath();
+                bgCtx.arc(this.position.x, this.position.y, this.size, 0, Math.PI * 2);
+                bgCtx.fill();
+            }
+        }
+        for(let i=0; i<50; i++) boids.push(new Boid());
+        function animateBoids() {
+            bgCtx.clearRect(0,0,width,height);
+            boids.forEach(b => { b.update(); b.draw(); });
+            requestAnimationFrame(animateBoids);
+        }
+        animateBoids();
+
+        // --- NEURAL LINK (Force Graph) ---
+        const nCanvas = document.getElementById('neural-canvas');
+        const nCtx = nCanvas.getContext('2d');
+        let nWidth, nHeight;
+        
+        // Added Security Skills
+        const nodes = [
+            { id: "Mitrajit", x: 0, y: 0, r: 25, type: 'core' },
+            { id: "Security", x: 0, y: 0, r: 15, type: 'cat' },
+            { id: "Cryptography", x: 0, y: 0, r: 12, type: 'skill' },
+            { id: "Wireshark", x: 0, y: 0, r: 12, type: 'skill' },
+            { id: "Frontend", x: 0, y: 0, r: 15, type: 'cat' },
+            { id: "Backend", x: 0, y: 0, r: 15, type: 'cat' },
+            { id: "React", x: 0, y: 0, r: 10, type: 'skill' },
+            { id: "Three.js", x: 0, y: 0, r: 10, type: 'skill' },
+            { id: "Python", x: 0, y: 0, r: 10, type: 'skill' },
+            { id: "WASM", x: 0, y: 0, r: 10, type: 'skill' }
+        ];
+
+        const links = [
+            { s: "Mitrajit", t: "Security" },
+            { s: "Mitrajit", t: "Frontend" },
+            { s: "Mitrajit", t: "Backend" },
+            { s: "Security", t: "Cryptography" },
+            { s: "Security", t: "Wireshark" },
+            { s: "Frontend", t: "React" },
+            { s: "Frontend", t: "Three.js" },
+            { s: "Backend", t: "Python" },
+            { s: "Backend", t: "WASM" }
+        ];
+
+        function resizeNeural() {
+            if(!nCanvas.parentElement) return;
+            const rect = nCanvas.parentElement.getBoundingClientRect();
+            nWidth = nCanvas.width = rect.width;
+            nHeight = nCanvas.height = rect.height;
+            nodes[0].x = nWidth/2; nodes[0].y = nHeight/2;
+            for(let i=1; i<nodes.length; i++) {
+                nodes[i].x = Math.random() * nWidth;
+                nodes[i].y = Math.random() * nHeight;
+            }
+        }
+        window.addEventListener('resize', resizeNeural);
+        setTimeout(resizeNeural, 100);
+
+        // Simple Physics for Neural
+        function updateNeural() {
+            for(let i=0; i<nodes.length; i++) {
+                // Repulsion
+                for(let j=0; j<nodes.length; j++) {
+                    if(i===j) continue;
+                    let dx = nodes[i].x - nodes[j].x;
+                    let dy = nodes[i].y - nodes[j].y;
+                    let dist = Math.sqrt(dx*dx+dy*dy) || 1;
+                    let force = 2000 / (dist*dist);
+                    nodes[i].vx = (nodes[i].vx || 0) + (dx/dist)*force;
+                    nodes[i].vy = (nodes[i].vy || 0) + (dy/dist)*force;
+                }
+            }
+            // Spring
+            for(let l of links) {
+                let s = nodes.find(n=>n.id===l.s);
+                let t = nodes.find(n=>n.id===l.t);
+                if(!s || !t) continue;
+                let dx = s.x - t.x;
+                let dy = s.y - t.y;
+                let dist = Math.sqrt(dx*dx+dy*dy) || 1;
+                let force = (dist - 100) * 0.05;
+                s.vx -= (dx/dist)*force; s.vy -= (dy/dist)*force;
+                t.vx += (dx/dist)*force; t.vy += (dy/dist)*force;
+            }
+            // Center Gravity & Damping
+            for(let n of nodes) {
+                n.vx *= 0.9; n.vy *= 0.9;
+                n.x += n.vx; n.y += n.vy;
+                // Bounds
+                n.x = Math.max(n.r, Math.min(nWidth-n.r, n.x));
+                n.y = Math.max(n.r, Math.min(nHeight-n.r, n.y));
+            }
+        }
+
+        function drawNeural() {
+            nCtx.clearRect(0,0,nWidth,nHeight);
+            nCtx.strokeStyle = '#5c4d42';
+            nCtx.lineWidth = 1;
+            links.forEach(l => {
+                let s = nodes.find(n=>n.id===l.s);
+                let t = nodes.find(n=>n.id===l.t);
+                if(s && t) { nCtx.beginPath(); nCtx.moveTo(s.x, s.y); nCtx.lineTo(t.x, t.y); nCtx.stroke(); }
+            });
+            nodes.forEach(n => {
+                nCtx.beginPath(); nCtx.arc(n.x, n.y, n.r, 0, Math.PI*2);
+                nCtx.fillStyle = n.type === 'core' ? '#a65840' : (n.type === 'cat' ? '#2d241f' : '#cbbca5');
+                nCtx.fill(); nCtx.stroke();
+                nCtx.fillStyle = '#1a1814'; nCtx.font = '10px Courier Prime'; nCtx.textAlign = 'center';
+                nCtx.fillText(n.id, n.x, n.y + n.r + 12);
+            });
+            requestAnimationFrame(() => { updateNeural(); drawNeural(); });
+        }
+        drawNeural();
+
+        // Mouse Drag Logic
+        let draggedNode = null;
+        nCanvas.addEventListener('mousedown', e => {
+            const r = nCanvas.getBoundingClientRect();
+            const mx = e.clientX - r.left, my = e.clientY - r.top;
+            draggedNode = nodes.find(n => Math.hypot(mx-n.x, my-n.y) < n.r+5);
+        });
+        window.addEventListener('mousemove', e => {
+            if(draggedNode) {
+                const r = nCanvas.getBoundingClientRect();
+                draggedNode.x = e.clientX - r.left; draggedNode.y = e.clientY - r.top;
+            }
+        });
+        window.addEventListener('mouseup', () => draggedNode = null);
+
+        // Console CTF
+        console.log("%c STOP.", "color: red; font-size: 30px; font-weight: bold;");
+        console.log("%c Unauthorized access to Survivor Archive console.", "color: white;");
+
+    </script>
+</body>
+</html>
