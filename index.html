@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mitrajit Ghorui | Archive [SECURE]</title>
+    <link rel="icon" href="https://i.imgur.com/KwODsL9.png" type="image/png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
@@ -506,6 +507,7 @@
         const termOutput = document.getElementById('terminal-output');
         let pyodideReady = false;
         let pyodide = null;
+        let isRoot = false; // CTF State
 
         async function loadPyodideEngine() {
             try {
@@ -726,7 +728,7 @@
         }
 
 
-        // --- 3. TERMINAL (CLI) ---
+        // --- 3. TERMINAL (CLI & MINI CTF) ---
         const termOverlay = document.getElementById('terminal-overlay');
         const termInput = document.getElementById('terminal-input');
         let isOpen = false;
@@ -745,10 +747,32 @@
         }
 
         const commands = {
-            help: "Available: help, clear, whoami, ls, encrypt --message=\"TEXT\"",
+            help: "Available: help, clear, whoami, ls, encrypt --message=\"TEXT\", login <password>, decrypt <file> --key=<int>",
             clear: () => { termOutput.innerHTML = ''; return ''; },
-            whoami: "guest_user_101 [UNAUTHORIZED]",
+            whoami: () => {
+                if(isRoot) return "Mitrajit Ghorui [ADMIN] - ACCESS: FULL";
+                return "guest_user_101 [UNAUTHORIZED] - Try gaining root access.";
+            },
             ls: "about.txt  skills.json  secrets.enc  projects/",
+            "cat about.txt": "Subject: Mitrajit Ghorui. Developer. Survivalist.",
+            "cat secrets.enc": "ENCRYPTED. Requires key. Hint: 'The year the Cordyceps outbreak began' (TLOU Game Lore).",
+            "decrypt": (args) => {
+                // CTF Logic: Check if they are trying to decrypt secrets.enc with the right year (2013)
+                if(args.includes('secrets.enc') && args.includes('--key=2013')) {
+                    return "DECRYPTION SUCCESSFUL.\nCONTENTS: password = 'clicker_protocol'";
+                } else if (args.includes('secrets.enc')) {
+                    return "DECRYPTION FAILED. Invalid Key.";
+                }
+                return "Usage: decrypt <file> --key=<int>";
+            },
+            "login": (args) => {
+                const pass = args.split(' ')[1];
+                if(pass === 'clicker_protocol') {
+                    isRoot = true;
+                    return "ACCESS GRANTED. Welcome, Administrator.";
+                }
+                return "ACCESS DENIED.";
+            },
             "encrypt": (args) => {
                 if(!pyodideReady) return "ERROR: WASM ENGINE LOADING...";
                 const msgMatch = args.match(/--message="([^"]+)"/);
@@ -780,16 +804,28 @@
         termInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 const raw = termInput.value.trim();
-                const [cmd, ...args] = raw.split(' ');
+                // Simple parsing to handle commands with arguments
+                const parts = raw.split(' ');
+                const cmd = parts[0];
+                const args = raw.substring(cmd.length).trim();
                 
                 log(`user@archive:~$ ${raw}`, "text-[#a65840]");
                 termInput.value = '';
                 
+                // Direct match
+                if (commands[raw]) {
+                     const resp = typeof commands[raw] === 'function' ? commands[raw](args) : commands[raw];
+                     if(resp) log(resp);
+                     return;
+                }
+
+                // Argument match
                 if (commands[cmd]) {
-                    const resp = typeof commands[cmd] === 'function' ? commands[cmd](raw) : commands[cmd];
+                    const resp = typeof commands[cmd] === 'function' ? commands[cmd](args) : commands[cmd];
                     if(resp) log(resp);
                 } else if (cmd === 'cat') {
-                     log(`Access Denied: ${args[0]}`, "text-red-500");
+                     // Fallback for cat if full string didn't match
+                     log(`Access Denied: ${args}`, "text-red-500");
                 } else {
                     log(`Command not found: ${cmd}`);
                 }
