@@ -451,9 +451,194 @@
             font-weight: bold;
         }
 
+        /* ═══════════════════════════════════════
+           ENTRY SCREEN
+           ═══════════════════════════════════════ */
+        #entry-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: #0a0908;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            overflow: hidden;
+            font-family: 'Courier Prime', monospace;
+        }
+        #entry-screen::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0,0,0,0.18) 2px,
+                rgba(0,0,0,0.18) 4px
+            );
+            pointer-events: none;
+            z-index: 2;
+        }
+        #entry-screen::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at center, transparent 30%, #000 130%);
+            pointer-events: none;
+            z-index: 2;
+        }
+        #entry-noise {
+            position: absolute;
+            inset: 0;
+            opacity: 0.06;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 1;
+        }
+        #entry-boot {
+            position: relative;
+            z-index: 3;
+            width: min(600px, 88vw);
+            color: #a65840;
+            font-size: clamp(11px, 1.4vw, 14px);
+            line-height: 1.8;
+            text-shadow: 0 0 6px rgba(166,88,64,0.5);
+            min-height: 220px;
+        }
+        #entry-boot .line {
+            display: block;
+            opacity: 0;
+            transform: translateX(-6px);
+            transition: opacity 0.25s ease, transform 0.25s ease;
+            white-space: pre;
+        }
+        #entry-boot .line.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        #entry-boot .line.dim    { color: #3a3530; text-shadow: none; }
+        #entry-boot .line.bright { color: #e6ceaa; text-shadow: 0 0 10px rgba(230,206,170,0.4); }
+        #entry-boot .line.warn   { color: #c0392b; text-shadow: 0 0 8px rgba(192,57,43,0.6); }
+        #entry-boot .line.ok     { color: #4a7c59; }
+        #entry-logo {
+            position: relative;
+            z-index: 3;
+            margin-top: 36px;
+            text-align: center;
+            opacity: 0;
+            transform: scale(0.94) translateY(12px);
+            transition: opacity 0.25s ease, transform 0.25s ease;
+            font-family: 'Special Elite', cursive;
+            letter-spacing: 0.12em;
+        }
+        #entry-logo.visible {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+        #entry-logo .logo-name {
+            font-size: clamp(30px, 7vw, 76px);
+            color: #e6ceaa;
+            text-shadow: 0 0 40px rgba(166,88,64,0.7), 0 0 80px rgba(166,88,64,0.2);
+            display: block;
+            line-height: 1;
+        }
+        #entry-logo .logo-rule {
+            display: block;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #a65840, transparent);
+            margin: 14px 0;
+            opacity: 0;
+            transition: opacity 0.5s ease 0.3s;
+        }
+        #entry-logo.visible .logo-rule { opacity: 1; transition: opacity 0.25s ease 0.1s; }
+        #entry-logo .logo-sub {
+            font-size: clamp(9px, 1.3vw, 12px);
+            color: #5c4d42;
+            letter-spacing: 0.4em;
+            display: block;
+            text-transform: uppercase;
+            font-family: 'Courier Prime', monospace;
+        }
+        #entry-skip {
+            position: absolute;
+            bottom: 28px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 4;
+            color: #3a3530;
+            font-size: 10px;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            opacity: 0;
+            transition: opacity 1.2s ease;
+            white-space: nowrap;
+        }
+        #entry-skip.visible { opacity: 1; }
+        @keyframes entry-cursor-blink {
+            0%, 100% { opacity: 1; } 50% { opacity: 0; }
+        }
+        .entry-cursor {
+            display: inline-block;
+            width: 8px; height: 1em;
+            background: #a65840;
+            vertical-align: text-bottom;
+            margin-left: 2px;
+            animation: entry-cursor-blink 0.9s step-end infinite;
+        }
+        @keyframes entry-glitch-out {
+            0%   { clip-path: inset(0 0 0 0);     filter: none;                           opacity: 1; transform: none; }
+            8%   { clip-path: inset(5% 0 70% 0);  filter: hue-rotate(80deg) brightness(3); transform: translateX(-10px); }
+            16%  { clip-path: inset(65% 0 5% 0);  filter: hue-rotate(-80deg);              transform: translateX(10px); }
+            24%  { clip-path: inset(0 0 0 0);     filter: brightness(2);                  transform: translateX(-3px); }
+            35%  { clip-path: inset(0 0 0 0);     filter: none;                           opacity: 1; transform: none; }
+            50%  { clip-path: inset(0 0 0 0);     filter: none;                           opacity: 1; }
+            65%  { clip-path: inset(0 0 80% 0);   filter: brightness(5);                  opacity: 0.5; }
+            80%  { clip-path: inset(75% 0 0 0);   opacity: 0.2; }
+            100% { clip-path: inset(0 0 0 0);     filter: brightness(0);                  opacity: 0; }
+        }
+        #entry-screen.dissolving {
+            animation: entry-glitch-out 0.75s ease-in forwards;
+            pointer-events: none;
+        }
+
     </style>
 </head>
 <body class="antialiased min-h-screen relative selection:bg-[#a65840] selection:text-black">
+
+    <!-- ═══ ENTRY SCREEN ═══ -->
+    <div id="entry-screen" onclick="dismissEntry()">
+        <div id="entry-noise"></div>
+
+        <!-- Boot log -->
+        <div id="entry-boot">
+            <span class="line dim">// ARCHIVE_OS v2.1.0 — INITIALIZING</span>
+            <span class="line dim">// KERNEL: cordyceps_88A — BUILD 2013.09.26</span>
+            <span class="line">&nbsp;</span>
+            <span class="line">[ .... ] Loading memory sectors............</span>
+            <span class="line ok">[ OK   ] Sector 0x001 — IDENTITY        mounted</span>
+            <span class="line ok">[ OK   ] Sector 0x002 — PROJECTS        mounted</span>
+            <span class="line ok">[ OK   ] Sector 0x003 — NEURAL_LINK     online</span>
+            <span class="line warn">[ WARN ] Sector 0x88A — CLASSIFIED      ENCRYPTED</span>
+            <span class="line warn">[ WARN ] 1 hidden file detected — root access required</span>
+            <span class="line">&nbsp;</span>
+            <span class="line dim">// Unauthorized access has been logged.</span>
+            <span class="line dim">// Proceed with caution. The archive remembers.</span>
+            <span class="line">&nbsp;</span>
+            <span class="line bright">BOOT SEQUENCE COMPLETE<span class="entry-cursor"></span></span>
+        </div>
+
+        <!-- Name slam -->
+        <div id="entry-logo">
+            <span class="logo-name">ARCHIVE<br><span style="color:#a65840;font-size:0.55em;letter-spacing:0.2em;">[ SECURE ]</span></span>
+            <span class="logo-rule"></span>
+            <span class="logo-sub">When you're lost in the darkness &nbsp;·&nbsp; look for the light</span>
+        </div>
+
+        <span id="entry-skip">// click anywhere to enter</span>
+    </div>
 
     <!-- ═══ ACHIEVEMENT SYSTEM HTML ═══ -->
     <div id="achievement-container"></div>
@@ -465,7 +650,7 @@
     <div id="ach-log-panel">
         <div class="ach-log-header">
             <span>TROPHY CASE</span>
-            <span id="ach-log-score">0 / 14</span>
+            <span id="ach-log-score">0 / 25</span>
         </div>
         <div id="ach-log-list"></div>
         <div class="ach-log-progress">
@@ -750,7 +935,31 @@
         </section>
 
         <!-- Footer -->
-        <footer class="mt-20 text-center text-[#5c4d42] text-xs font-mono space-y-2 pb-12">
+        <footer class="mt-20 text-center text-[#5c4d42] text-xs font-mono space-y-2 pb-12 relative">
+            <!-- LURKING CAT (easter egg - click me!) -->
+            <pre id="lurking-cat" style="
+                position: absolute;
+                bottom: 10px;
+                right: -20px;
+                color: #a65840;
+                font-family: 'Courier Prime', monospace;
+                font-size: 13px;
+                line-height: 1.4;
+                opacity: 0.22;
+                pointer-events: auto;
+                z-index: 60;
+                cursor: pointer;
+                white-space: pre;
+                user-select: none;
+                transition: opacity 0.4s ease, text-shadow 0.4s ease;
+                text-shadow: none;
+            " onclick="triggerCatInvasion()">   /\_____/\
+  /  o   o  \
+ ( ==  ^  == )
+  )         (
+ (           )
+( (  )   (  ) )
+(__(__)___(__)__)</pre>
             <p>END OF TRANSMISSION</p>
             <p class="text-[#3a3530] hover:text-[#5c4d42] transition-colors duration-500 cursor-default" title="The fungus crossed the species barrier in the year the world changed. Use that year as a key.">// cordyceps_year :: Integer - the world changed, and so did everything else</p>
             <p>&copy; 2026 Mitrajit Ghorui. All rights reserved.</p>
@@ -1555,6 +1764,17 @@
             cursor:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:26px;height:26px;color:var(--ach-color)"><path d="M4 3l16 7-7 3-3 7z" stroke-linejoin="round"/><line x1="13" y1="13" x2="19" y2="19" stroke-linecap="round"/></svg>`,
             inspect:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:26px;height:26px;color:var(--ach-color)"><path d="M10 3H3v7"/><path d="M21 14v7h-7"/><path d="M3 10L12 12l-2-9"/><circle cx="18" cy="6" r="3"/><line x1="20.1" y1="8.1" x2="22" y2="10"/></svg>`,
             ghost2:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:26px;height:26px;color:var(--ach-color)"><path d="M12 2a8 8 0 0 0-8 8v10l3-3 2 2 2-2 2 2 2-2 3 3V10a8 8 0 0 0-8-8z" stroke-linejoin="round"/><line x1="9" y1="10" x2="9" y2="10" stroke-linecap="round" stroke-width="2"/><line x1="15" y1="10" x2="15" y2="10" stroke-linecap="round" stroke-width="2"/></svg>`,
+            cat:       `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:26px;height:26px;color:var(--ach-color)"><path d="M12 5C8 5 5 8 5 12v5l1 1h12l1-1v-5c0-4-3-7-7-7z"/><path d="M5 10C3 9 2 7 3 5l2 3"/><path d="M19 10c2-1 3-3 2-5l-2 3"/><circle cx="9" cy="12" r="1" fill="currentColor"/><circle cx="15" cy="12" r="1" fill="currentColor"/><path d="M9 16s1 1 3 1 3-1 3-1"/><line x1="8" y1="7" x2="8" y2="5"/><line x1="16" y1="7" x2="16" y2="5"/></svg>`,
+            flip:      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:26px;height:26px;color:var(--ach-color)"><path d="M3 12h18M3 12l4-4M3 12l4 4M21 12l-4-4M21 12l-4 4"/><line x1="12" y1="3" x2="12" y2="21" stroke-dasharray="2 2"/></svg>`,
+            moon:      `<svg viewBox="0 0 24 24" fill="currentColor" style="width:26px;height:26px;color:var(--ach-color)"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/></svg>`,
+            calendar:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:26px;height:26px;color:var(--ach-color)"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/><rect x="8" y="13" width="3" height="3" fill="currentColor" rx="0.5"/></svg>`,
+            idle:      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:26px;height:26px;color:var(--ach-color)"><circle cx="12" cy="12" r="9"/><polyline points="12 6 12 12 16 14"/><path d="M5 19l-2 2M19 19l2 2" stroke-linecap="round"/></svg>`,
+            clicker:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:26px;height:26px;color:var(--ach-color)"><path d="M12 2a7 7 0 00-7 7v4l-1 3h16l-1-3V9a7 7 0 00-7-7z"/><circle cx="9" cy="10" r="1.5" fill="currentColor"/><circle cx="15" cy="10" r="1.5" fill="currentColor"/><path d="M9 14c.5 1.5 5.5 1.5 6 0" stroke-linecap="round"/><line x1="12" y1="2" x2="12" y2="0"/><line x1="8" y1="3" x2="7" y2="1"/><line x1="16" y1="3" x2="17" y2="1"/></svg>`,
+            nameclick: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:26px;height:26px;color:var(--ach-color)"><path d="M12 3l2 5h5l-4 3 2 5-5-3-5 3 2-5-4-3h5z" stroke-linejoin="round"/><circle cx="12" cy="12" r="1" fill="currentColor"/><path d="M3 21l4-4M21 21l-4-4M12 19v2" stroke-linecap="round"/></svg>`,
+            matrix:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:26px;height:26px;color:var(--ach-color)"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9.5" y="2" width="5" height="5" rx="1"/><rect x="17" y="2" width="5" height="5" rx="1"/><rect x="2" y="9.5" width="5" height="5" rx="1"/><rect x="17" y="9.5" width="5" height="5" rx="1"/><rect x="2" y="17" width="5" height="5" rx="1"/><rect x="9.5" y="17" width="5" height="5" rx="1"/><rect x="17" y="17" width="5" height="5" rx="1"/></svg>`,
+            lore:      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:26px;height:26px;color:var(--ach-color)"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>`,
+            whisper:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:26px;height:26px;color:var(--ach-color)"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="9" y1="10" x2="9" y2="10" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="10" x2="12" y2="10" stroke-width="2" stroke-linecap="round"/><line x1="15" y1="10" x2="15" y2="10" stroke-width="2" stroke-linecap="round"/></svg>`,
+            rage:      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:26px;height:26px;color:var(--ach-color)"><circle cx="12" cy="12" r="10"/><path d="M8 15s1.5-2 4-2 4 2 4 2"/><line x1="9" y1="9" x2="9.01" y2="9" stroke-width="3" stroke-linecap="round"/><line x1="15" y1="9" x2="15.01" y2="9" stroke-width="3" stroke-linecap="round"/><path d="M8 5l2 2M16 5l-2 2" stroke-linecap="round"/></svg>`,
         };
         const TROPHIES = {
             bronze:   `<svg viewBox="0 0 24 24" fill="none" style="width:28px;height:28px" class="ach-trophy-img"><circle cx="12" cy="8" r="6" fill="#cd7f32" stroke="#a0622a" stroke-width="1"/><rect x="9" y="14" width="6" height="3" fill="#a0622a"/><rect x="7" y="17" width="10" height="2" rx="1" fill="#cd7f32"/></svg>`,
@@ -1692,11 +1912,111 @@
                 trophy: TROPHIES.bronze,
                 rarityLabel: 'BRONZE'
             },
+            {
+                id: 'cat_invasion',
+                title: 'Cat Invasion',
+                desc: 'You unleashed the cats. They do not answer to you.',
+                icon: ICONS.cat,
+                rarity: 'silver',
+                trophy: TROPHIES.silver,
+                rarityLabel: 'SILVER'
+            },
+            {
+                id: 'world_flip',
+                title: 'Upside Down',
+                desc: 'You flipped the archive. Some things cannot be un-seen.',
+                icon: ICONS.flip,
+                rarity: 'bronze',
+                trophy: TROPHIES.bronze,
+                rarityLabel: 'BRONZE'
+            },
+            {
+                id: 'midnight_operator',
+                title: 'Midnight Operator',
+                desc: 'You browse archives in the dark. Suspicious.',
+                icon: ICONS.moon,
+                rarity: 'gold',
+                trophy: TROPHIES.gold,
+                rarityLabel: 'GOLD'
+            },
+            {
+                id: 'sept_26',
+                title: 'The Day It Ended',
+                desc: 'You visited on September 26. You know what that means.',
+                icon: ICONS.calendar,
+                rarity: 'omega',
+                trophy: TROPHIES.omega,
+                rarityLabel: 'RARE GOLD'
+            },
+            {
+                id: 'still_there',
+                title: 'Are You Still There?',
+                desc: 'You went idle. The archive grew worried. Then suspicious.',
+                icon: ICONS.idle,
+                rarity: 'bronze',
+                trophy: TROPHIES.bronze,
+                rarityLabel: 'BRONZE'
+            },
+            {
+                id: 'lore_keeper',
+                title: 'Lore Keeper',
+                desc: 'You spoke the names of the fallen. Joel. Ellie. The archive remembers.',
+                icon: ICONS.lore,
+                rarity: 'purple',
+                trophy: TROPHIES.purple,
+                rarityLabel: 'PURPLE'
+            },
+            {
+                id: 'clicker_speak',
+                title: 'Click Click Click',
+                desc: 'You know the sound. You called it by name. Run.',
+                icon: ICONS.clicker,
+                rarity: 'gold',
+                trophy: TROPHIES.gold,
+                rarityLabel: 'GOLD'
+            },
+            {
+                id: 'name_secret',
+                title: 'Who Are You, Really?',
+                desc: 'You clicked the name. Three times. Something stirred in the static.',
+                icon: ICONS.nameclick,
+                rarity: 'silver',
+                trophy: TROPHIES.silver,
+                rarityLabel: 'SILVER'
+            },
+            {
+                id: 'matrix_glitch',
+                title: 'There Is No Spoon',
+                desc: 'You took the red pill. The archive is not what it seems.',
+                icon: ICONS.matrix,
+                rarity: 'silver',
+                trophy: TROPHIES.silver,
+                rarityLabel: 'SILVER'
+            },
+            {
+                id: 'ghost_whisper',
+                title: 'It Heard You',
+                desc: 'You said hello. Something in the static said it back.',
+                icon: ICONS.whisper,
+                rarity: 'gold',
+                trophy: TROPHIES.gold,
+                rarityLabel: 'GOLD'
+            },
+            {
+                id: 'trophy_rage',
+                title: 'OK Fine. You Win.',
+                desc: 'You broke the trophy case. Congratulations, I guess.',
+                icon: ICONS.rage,
+                rarity: 'bronze',
+                trophy: TROPHIES.bronze,
+                rarityLabel: 'BRONZE'
+            },
         ];
 
         const unlockedAchs = new Set();
         let inspectorsOpened = new Set();
         let catsRead = new Set();
+        let loreCommandsSeen = new Set();
         let achQueue = [];
         let achShowing = false;
 
@@ -1849,6 +2169,12 @@
             const raw = termInput.value.trim().toLowerCase();
 
             if (raw === 'whoami') setTimeout(() => unlockAchievement('ghost_protocol'), 300);
+
+            // Track TLOU lore commands - need both joel AND ellie for full achievement
+            if (raw === 'joel' || raw === 'ellie' || raw === 'firefly' || raw === 'outbreak_day') {
+                loreCommandsSeen.add(raw);
+                if (loreCommandsSeen.size >= 2) setTimeout(() => unlockAchievement('lore_keeper'), 300);
+            }
 
             // cat files tracking
             if (raw.startsWith('cat ')) {
@@ -2033,8 +2359,541 @@
         // "man"
         commands['man'] = (args) => `No manual entry for '${args||'man'}'.\nThis is not that kind of system.\n  Try: help`;
 
+        // ── SECRET COMMANDS (revealed via "help --hidden") ──────────────
+        commands['help --hidden'] = () => [
+            "╔══════════════════════════════════════╗",
+            "║    CLASSIFIED COMMAND REFERENCE      ║",
+            "╚══════════════════════════════════════╝",
+            "",
+            "  cats             - ???",
+            "  joel             - ...",
+            "  ellie            - ...",
+            "  clicker          - do not.",
+            "  cordyceps        - the beginning of the end",
+            "  matrix           - red pill / blue pill",
+            "  flip             - you asked for this",
+            "  firefly          - we have a right to try",
+            "  outbreak_day     - September 26, 2013",
+            "",
+            "  These commands are not in the official docs.",
+            "  You were not supposed to find this.",
+        ].join("\n");
+
+        // "joel"
+        commands['joel'] = () => {
+            setTimeout(() => unlockAchievement('lore_keeper'), 300);
+            return [
+                "  Joel Miller. Smuggler. Survivor.",
+                "  He crossed the quarantine zone so many times",
+                "  the guards stopped counting.",
+                "  We do not discuss what happened in Salt Lake City.",
+                "",
+                "  [RECORD SEALED - FEDRA CLASSIFIED]",
+            ].join("\n");
+        };
+
+        // "ellie"
+        commands['ellie'] = () => {
+            setTimeout(() => unlockAchievement('lore_keeper'), 300);
+            return [
+                "  Ellie Williams. Immune.",
+                "  Blood type: A+. Infection status: ANOMALOUS.",
+                "  Firefly tag #: unknown.",
+                "  Last known location: [REDACTED]",
+                "",
+                "  'I don't know what I'm supposed to do with all of this.'",
+                "       - E.W., personal log, undated",
+            ].join("\n");
+        };
+
+        // "clicker"
+        commands['clicker'] = () => {
+            setTimeout(() => unlockAchievement('clicker_speak'), 400);
+            // Screen flicker + sound cue via CSS
+            document.body.style.filter = 'brightness(0.1)';
+            setTimeout(() => { document.body.style.filter = 'brightness(1.4) saturate(0)'; }, 80);
+            setTimeout(() => { document.body.style.filter = 'brightness(0.05)'; }, 180);
+            setTimeout(() => { document.body.style.filter = ''; }, 320);
+            return [
+                "  click.",
+                "  click.",
+                "  CLICK CLICK CLICK.",
+                "",
+                "  Stage 3 Cordyceps. Fungal plate growth: 100%.",
+                "  Visual cortex: DESTROYED. Echolocation: ACTIVE.",
+                "  Threat level: CRITICAL.",
+                "",
+                "  You heard it. Now it heard you.",
+                "  [CLOSE TERMINAL AND RUN]",
+            ].join("\n");
+        };
+
+        // "cordyceps"
+        commands['cordyceps'] = () => [
+            "  Ophiocordyceps unilateralis.",
+            "  A parasitic fungus. Historically harmless to humans.",
+            "",
+            "  2003: First mutation detected in South American grain supply.",
+            "  2013: Cross-species barrier breached. Patient zero: unknown.",
+            "  2013-09-26: Global infection confirmed. Civilization: OFFLINE.",
+            "",
+            "  The key to this archive is the year it all ended.",
+            "  You already know it.",
+        ].join("\n");
+
+        // "firefly"
+        commands['firefly'] = () => [
+            "  FIREFLIES - Paramilitary Resistance",
+            "  Motto: 'When you're lost in the darkness, look for the light.'",
+            "",
+            "  Status: DISBANDED",
+            "  Last known base: St. Mary's Hospital, Salt Lake City",
+            "  Mission: Find the cure. At any cost.",
+            "",
+            "  The cure was closer than anyone knew.",
+            "  Whether the cost was worth it... is still debated.",
+        ].join("\n");
+
+        // "outbreak_day"
+        commands['outbreak_day'] = () => [
+            "  DATE: September 26, 2013.",
+            "  The day the Cordyceps crossed.",
+            "  The day everything stopped.",
+            "",
+            "  Every year on this date, survivors mark the time.",
+            "  Not to mourn. To remember they are still here.",
+            "",
+            "  The archive was born on this date.",
+            "  So was the key: 2013.",
+        ].join("\n");
+
+        // "matrix"
+        commands['matrix'] = () => {
+            setTimeout(() => unlockAchievement('matrix_glitch'), 400);
+            // Rain effect
+            spawnMatrixRain();
+            return [
+                "  You took the red pill.",
+                "",
+                "  Wake up, Neo.",
+                "  The archive has you.",
+                "  Follow the white rabbit.",
+                "",
+                "  (the rabbit in this archive is a clicker.)",
+                "  (there is no spoon.)",
+            ].join("\n");
+        };
+
+        // "flip"
+        commands['flip'] = () => {
+            setTimeout(() => unlockAchievement('world_flip'), 400);
+            const mc = document.getElementById('main-content');
+            const isFlipped = mc.style.transform === 'rotate(180deg) scaleX(-1)';
+            mc.style.transition = 'transform 0.8s cubic-bezier(0.68,-0.55,0.27,1.55)';
+            mc.style.transform = isFlipped ? '' : 'rotate(180deg) scaleX(-1)';
+            return isFlipped
+                ? "  Archive restored to standard orientation.\n  For now."
+                : [
+                    "  Flipping the archive...",
+                    "",
+                    "  The world looks different upside down.",
+                    "  Or maybe this was always the right way.",
+                    "  Type 'flip' again to restore.",
+                ].join("\n");
+        };
+
+        // "cats" terminal command - hint only now
+        commands['cats'] = () => [
+            "  No cats found in this directory.",
+            "  But the archive feels... watched.",
+            "  Something is lurking. Look around.",
+        ].join("\n");
+
+        // ── LURKING CAT hover glow + click handler ─────
+        (function() {
+            const cat = document.getElementById('lurking-cat');
+            if (!cat) return;
+            cat.addEventListener('mouseenter', () => {
+                cat.style.opacity = '0.6';
+                cat.style.textShadow = '0 0 8px #a65840';
+            });
+            cat.addEventListener('mouseleave', () => {
+                cat.style.opacity = '0.22';
+                cat.style.textShadow = 'none';
+            });
+        })();
+
+        // ── CAT INVASION ─────────────────────────────
+        function triggerCatInvasion() {
+            unlockAchievement('cat_invasion');
+            spawnCatInvasion();
+            // Brief glow flash on the lurking cat itself
+            const cat = document.getElementById('lurking-cat');
+            if (cat) {
+                cat.style.opacity = '1';
+                cat.style.textShadow = '0 0 20px #a65840, 0 0 40px #a65840';
+                setTimeout(() => {
+                    cat.style.opacity = '0.22';
+                    cat.style.textShadow = 'none';
+                }, 1200);
+            }
+        }
+
+        function spawnCatInvasion() {
+            // Remove existing cats if re-triggered
+            document.querySelectorAll('.invasion-cat').forEach(c => c.remove());
+
+            const catAscii = [
+                // Each cat is a small ASCII drawing using spans
+                { body: ' /\\_/\\ \n( o.o )\n > ^ <', w: 70 },
+                { body: ' /\\_/\\ \n( -.^ )\n  >"<  ', w: 70 },
+                { body: '  ^..^\n (    )\n  \\  / ', w: 60 },
+                { body: ' /\\  /\\\n(  \\/  )\n (    ) ', w: 75 },
+                { body: '  |\\_/|\n  | ^ |\n (___)  ', w: 65 },
+            ];
+
+            const count = 22;
+            for (let i = 0; i < count; i++) {
+                const cat = document.createElement('pre');
+                const template = catAscii[i % catAscii.length];
+                cat.className = 'invasion-cat';
+                cat.textContent = template.body;
+                // Random start position off-screen
+                const startSide = Math.random() > 0.5 ? -120 : window.innerWidth + 20;
+                const yPos = Math.random() * (window.innerHeight - 100);
+                const delay = i * 120;
+                const duration = 2800 + Math.random() * 2000;
+                const targetX = Math.random() * (window.innerWidth - 100);
+                const targetY = Math.random() * (window.innerHeight - 100);
+
+                cat.style.cssText = `
+                    position: fixed;
+                    left: ${startSide}px;
+                    top: ${yPos}px;
+                    color: #a65840;
+                    font-family: 'Courier Prime', monospace;
+                    font-size: 11px;
+                    line-height: 1.3;
+                    pointer-events: none;
+                    z-index: 9998;
+                    opacity: 0;
+                    white-space: pre;
+                    text-shadow: 0 0 6px #a65840;
+                    transition: left ${duration}ms ease-in-out, top ${duration * 0.9}ms ease-in-out, opacity 0.4s ease;
+                `;
+                document.body.appendChild(cat);
+
+                // Animate in after delay
+                setTimeout(() => {
+                    cat.style.opacity = '1';
+                    cat.style.left = targetX + 'px';
+                    cat.style.top  = targetY + 'px';
+                }, delay + 50);
+
+                // Fade out and remove after duration
+                setTimeout(() => {
+                    cat.style.opacity = '0';
+                    setTimeout(() => cat.remove(), 500);
+                }, delay + duration + 500);
+            }
+        }
+
+        // ── MATRIX RAIN ──────────────────────────────
+        function spawnMatrixRain() {
+            const existing = document.getElementById('matrix-rain-canvas');
+            if (existing) { existing.remove(); return; }
+
+            const canvas = document.createElement('canvas');
+            canvas.id = 'matrix-rain-canvas';
+            canvas.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:9990;pointer-events:none;opacity:0;transition:opacity 0.5s;';
+            document.body.appendChild(canvas);
+
+            const ctx = canvas.getContext('2d');
+            canvas.width  = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const cols = Math.floor(canvas.width / 14);
+            const drops = Array(cols).fill(1);
+            const chars  = '01アイウエオカキクケコ2013CORDYCEPSCLICKER';
+
+            requestAnimationFrame(() => { canvas.style.opacity = '0.55'; });
+
+            const interval = setInterval(() => {
+                ctx.fillStyle = 'rgba(15, 14, 13, 0.07)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#3a4034';
+                ctx.font = '13px monospace';
+                drops.forEach((y, i) => {
+                    const ch = chars[Math.floor(Math.random() * chars.length)];
+                    ctx.fillStyle = Math.random() > 0.97 ? '#e6ceaa' : '#a65840';
+                    ctx.fillText(ch, i * 14, y * 14);
+                    if (y * 14 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                    drops[i]++;
+                });
+            }, 45);
+
+            // Auto-remove after 6 seconds
+            setTimeout(() => {
+                canvas.style.opacity = '0';
+                clearInterval(interval);
+                setTimeout(() => canvas.remove(), 600);
+            }, 6000);
+        }
+
+        // ── TRIPLE-CLICK ON NAME ──────────────────────
+        (function() {
+            const h1 = document.querySelector('h1.gritty-text');
+            if (!h1) return;
+            let clickCount = 0, clickTimer = null;
+            h1.style.cursor = 'pointer';
+            h1.addEventListener('click', () => {
+                clickCount++;
+                clearTimeout(clickTimer);
+                clickTimer = setTimeout(() => { clickCount = 0; }, 600);
+                if (clickCount >= 3) {
+                    clickCount = 0;
+                    clearTimeout(clickTimer);
+                    unlockAchievement('name_secret');
+                    // Flash the name and show a brief glitch message
+                    const orig = h1.innerHTML;
+                    h1.innerHTML = 'WHO<br><span style="color:#a65840">AM I?</span>';
+                    h1.style.filter = 'blur(1px) brightness(2)';
+                    setTimeout(() => {
+                        h1.innerHTML = orig;
+                        h1.style.filter = '';
+                    }, 900);
+                }
+            });
+        })();
+
+        // ── MIDNIGHT VISITOR ──────────────────────────
+        (function() {
+            const now = new Date();
+            const h = now.getHours();
+            if (h >= 0 && h < 1) {  // 00:00 - 00:59
+                setTimeout(() => unlockAchievement('midnight_operator'), 3000);
+            }
+        })();
+
+        // ── SEPTEMBER 26 — OUTBREAK DAY ──────────────
+        (function() {
+            const now = new Date();
+            if (now.getMonth() === 8 && now.getDate() === 26) { // month is 0-indexed
+                // Show a special title flicker first, then achievement
+                document.title = '// OUTBREAK DAY';
+                setTimeout(() => {
+                    document.title = 'Mitrajit Ghorui | Archive [SECURE]';
+                    unlockAchievement('sept_26');
+                }, 2500);
+            }
+        })();
+
+        // ── IDLE WATCHER (2 minutes) ──────────────────
+        (function() {
+            let idleTimer = null;
+            let idleFired = false;
+            const IDLE_MS = 120000; // 2 minutes
+
+            function resetIdle() {
+                clearTimeout(idleTimer);
+                if (idleFired) return;
+                idleTimer = setTimeout(() => {
+                    if (!idleFired) {
+                        idleFired = true;
+                        unlockAchievement('still_there');
+                    }
+                }, IDLE_MS);
+            }
+
+            ['mousemove','keydown','scroll','touchstart','click'].forEach(ev => {
+                document.addEventListener(ev, resetIdle, { passive: true });
+            });
+            resetIdle();
+        })();
+
         // Init log display
         updateAchLog();
+
+        // ── ENTRY SCREEN ─────────────────────────────
+        (function() {
+            const screen  = document.getElementById('entry-screen');
+            const lines   = screen.querySelectorAll('#entry-boot .line');
+            const logo    = document.getElementById('entry-logo');
+            const skip    = document.getElementById('entry-skip');
+            let dismissed = false;
+            let bootDone  = false;
+
+            // Reveal boot lines one by one
+            const delays = [];
+            let t = 180;
+            lines.forEach((line, i) => {
+                const gap = line.textContent.trim() === '' ? 60 : (line.classList.contains('warn') ? 220 : 130);
+                delays.push(setTimeout(() => {
+                    line.classList.add('visible');
+                    if (i === lines.length - 1) {
+                        bootDone = true;
+                        // Logo slam after last line
+                        setTimeout(() => {
+                            if (!dismissed) logo.classList.add('visible');
+                        }, 150);
+                        // Show skip hint
+                        setTimeout(() => {
+                            if (!dismissed) skip.classList.add('visible');
+                        }, 300);
+                    }
+                }, t));
+                t += gap;
+            });
+
+            function dismissEntry() {
+                if (dismissed) return;
+                dismissed = true;
+                delays.forEach(clearTimeout);
+                screen.classList.add('dissolving');
+                setTimeout(() => {
+                    screen.style.display = 'none';
+                }, 800);
+            }
+
+            // Expose globally for onclick
+            window.dismissEntry = dismissEntry;
+
+            // Auto-dismiss after full sequence + 3s reading time
+            setTimeout(() => { if (!dismissed) dismissEntry(); }, t + 3200);
+        })();
+
+        // ── EASTER EGG: GHOST TYPING ─────────────────────────────
+        // Type "hello" anywhere on the page (outside terminal) → archive responds
+        (function() {
+            const TRIGGER = 'hello';
+            let buffer = '';
+            let ghostFired = false;
+
+            document.addEventListener('keydown', (e) => {
+                // Ignore if terminal is open or user is in an input
+                if (isOpen) return;
+                if (['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) return;
+                if (e.key.length !== 1) return;
+
+                buffer += e.key.toLowerCase();
+                if (buffer.length > TRIGGER.length) buffer = buffer.slice(-TRIGGER.length);
+
+                if (buffer === TRIGGER) {
+                    buffer = '';
+                    if (ghostFired) return; // only surprise once per session
+                    ghostFired = true;
+                    showGhostResponse();
+                }
+            });
+
+            const responses = [
+                "...hello?\n\nI didn't think anyone was still out there.\nThe archive has been waiting.\nFor a long time.",
+                "...you shouldn't be here.\nBut since you are —\nthe key is 2013.\nDon't tell anyone I told you.",
+                "Hello, guest_user_101.\nI know who you are.\nI know what you're looking for.\nKeep going.",
+            ];
+
+            function showGhostResponse() {
+                unlockAchievement('ghost_whisper');
+
+                const overlay = document.createElement('div');
+                overlay.style.cssText = `
+                    position: fixed; inset: 0; z-index: 9990;
+                    display: flex; align-items: center; justify-content: center;
+                    pointer-events: none;
+                `;
+
+                const box = document.createElement('div');
+                box.style.cssText = `
+                    background: rgba(10,9,8,0.92);
+                    border: 1px solid #3a3530;
+                    border-left: 2px solid #a65840;
+                    padding: 24px 32px;
+                    font-family: 'Courier Prime', monospace;
+                    font-size: 14px;
+                    color: #a65840;
+                    text-shadow: 0 0 8px rgba(166,88,64,0.5);
+                    max-width: min(480px, 88vw);
+                    white-space: pre-wrap;
+                    line-height: 1.8;
+                    box-shadow: 0 0 40px rgba(0,0,0,0.9);
+                    opacity: 0;
+                    transition: opacity 0.4s ease;
+                `;
+
+                const msg = responses[Math.floor(Math.random() * responses.length)];
+                overlay.appendChild(box);
+                document.body.appendChild(overlay);
+
+                // Type it out character by character
+                requestAnimationFrame(() => { box.style.opacity = '1'; });
+                let i = 0;
+                const cursor = document.createElement('span');
+                cursor.style.cssText = 'display:inline-block;width:8px;height:1em;background:#a65840;vertical-align:text-bottom;margin-left:2px;animation:entry-cursor-blink 0.9s step-end infinite;';
+                box.appendChild(cursor);
+
+                const typer = setInterval(() => {
+                    box.insertBefore(document.createTextNode(msg[i]), cursor);
+                    i++;
+                    if (i >= msg.length) {
+                        clearInterval(typer);
+                        cursor.remove();
+                        // Fade out after reading time
+                        setTimeout(() => {
+                            box.style.opacity = '0';
+                            setTimeout(() => overlay.remove(), 500);
+                        }, 3500);
+                    }
+                }, 38);
+            }
+        })();
+
+        // ── EASTER EGG: TROPHY RAGE ──────────────────────────────
+        // Click TROPHIES button 10 times fast → it breaks and insults you
+        (function() {
+            const btn = document.getElementById('ach-log-btn');
+            if (!btn) return;
+            let clickCount = 0;
+            let rageTimer = null;
+            let rageFired = false;
+
+            btn.addEventListener('click', () => {
+                if (rageFired) return;
+                clickCount++;
+                clearTimeout(rageTimer);
+                rageTimer = setTimeout(() => { clickCount = 0; }, 2000);
+
+                if (clickCount >= 10) {
+                    clickCount = 0;
+                    rageFired = true;
+                    clearTimeout(rageTimer);
+                    triggerTrophyRage();
+                }
+            });
+
+            function triggerTrophyRage() {
+                unlockAchievement('trophy_rage');
+                const original = btn.textContent;
+
+                const msgs = [
+                    'STOP.', 'STOP IT.', 'I MEAN IT.', 'OK FINE.',
+                    'YOU WIN.', 'HAPPY NOW?', '...', 'go away.'
+                ];
+                let mi = 0;
+                const interval = setInterval(() => {
+                    btn.textContent = msgs[mi];
+                    btn.style.borderColor = mi % 2 === 0 ? '#c0392b' : '#a65840';
+                    mi++;
+                    if (mi >= msgs.length) {
+                        clearInterval(interval);
+                        setTimeout(() => {
+                            btn.innerHTML = 'TROPHIES <span class="ach-count" id="ach-count-badge">' + document.getElementById('ach-count-badge').textContent + '</span>';
+                            btn.style.borderColor = '';
+                            rageFired = false; // allow again after cooldown
+                        }, 1200);
+                    }
+                }, 280);
+            }
+        })();
 
     </script>
 </body>
