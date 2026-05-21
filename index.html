@@ -126,10 +126,14 @@
             z-index: 100;
             display: none;
             flex-direction: column;
-            padding: 2rem;
+            padding: 1rem;
             font-family: 'Courier Prime', monospace;
             color: var(--rust);
             text-shadow: 0 0 5px var(--rust);
+        }
+        
+        @media (min-width: 768px) {
+            #terminal-overlay { padding: 2rem; }
         }
         
         #terminal-overlay.open { display: flex; }
@@ -202,6 +206,230 @@
         ::-webkit-scrollbar-thumb { background: #5c4d42; }
         ::-webkit-scrollbar-thumb:hover { background: var(--rust); }
 
+        /* ═══════════════════════════════════════
+           ACHIEVEMENT SYSTEM - PlayStation/TLOU
+           ═══════════════════════════════════════ */
+        #achievement-container {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            pointer-events: none;
+            width: min(420px, 92vw);
+        }
+
+        .achievement-toast {
+            width: 100%;
+            background: linear-gradient(135deg, #1a1612 0%, #231e18 60%, #1a1612 100%);
+            border: 1px solid #5c4d42;
+            border-top: 2px solid var(--ach-color, #a65840);
+            box-shadow: 0 8px 40px rgba(0,0,0,0.85), 0 0 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
+            font-family: 'Courier Prime', monospace;
+            pointer-events: auto;
+            position: relative;
+            overflow: hidden;
+            transform: translateY(-120%);
+            opacity: 0;
+            transition: transform 0.5s cubic-bezier(0.34,1.56,0.64,1), opacity 0.4s ease;
+        }
+        .achievement-toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .achievement-toast.hide {
+            transform: translateY(-120%);
+            opacity: 0;
+            transition: transform 0.4s ease-in, opacity 0.3s ease-in;
+        }
+        .achievement-toast::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; width: 60%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent);
+            animation: ach-shimmer 2s ease forwards;
+            animation-delay: 0.5s;
+        }
+        @keyframes ach-shimmer {
+            0%   { left: -100%; }
+            100% { left: 200%; }
+        }
+        .ach-icon-wrap {
+            flex-shrink: 0;
+            width: 48px; height: 48px;
+            border-radius: 4px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(0,0,0,0.4);
+            position: relative;
+        }
+        .ach-icon-wrap::before {
+            content: '';
+            position: absolute; inset: -1px;
+            border-radius: 4px;
+            background: linear-gradient(135deg, var(--ach-color,#a65840) 0%, transparent 60%);
+            opacity: 0.3;
+            z-index: -1;
+        }
+        .ach-rarity-bar {
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 3px;
+            background: var(--ach-color, #a65840);
+            box-shadow: 0 0 8px var(--ach-color, #a65840);
+        }
+        .ach-text { flex: 1; min-width: 0; }
+        .ach-header {
+            font-size: 9px;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--ach-color, #a65840);
+            margin-bottom: 2px;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .ach-pip {
+            display: inline-block;
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--ach-color, #a65840);
+            box-shadow: 0 0 6px var(--ach-color, #a65840);
+            animation: ach-pip-pulse 1.5s ease-out forwards;
+        }
+        @keyframes ach-pip-pulse {
+            0%   { transform: scale(1);   opacity: 1; }
+            60%  { transform: scale(1.8); opacity: 0.8; }
+            100% { transform: scale(1);   opacity: 1; }
+        }
+        .ach-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #e6ceaa;
+            letter-spacing: 0.05em;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .ach-desc {
+            font-size: 10px;
+            color: #7a6e63;
+            margin-top: 1px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .ach-trophy {
+            flex-shrink: 0;
+            font-size: 20px;
+            filter: drop-shadow(0 0 6px var(--ach-color, #a65840));
+            animation: ach-trophy-spin 0.6s ease-out forwards;
+            animation-delay: 0.2s;
+            opacity: 0;
+        }
+        @keyframes ach-trophy-spin {
+            0%   { transform: scale(0) rotate(-30deg); opacity: 0; }
+            70%  { transform: scale(1.2) rotate(5deg); opacity: 1; }
+            100% { transform: scale(1) rotate(0deg);   opacity: 1; }
+        }
+        .ach-bronze   { --ach-color: #cd7f32; }
+        .ach-silver   { --ach-color: #a8a9ad; }
+        .ach-gold     { --ach-color: #ffd700; }
+        .ach-purple   { --ach-color: #c084fc; }
+        .ach-platinum { --ach-color: #b9f2ff; }
+        /* OMEGA rare gold */
+        .ach-omega    { --ach-color: #ffd700; }
+        .ach-omega .ach-rarity-bar {
+            background: linear-gradient(180deg, #ffd700, #ff8c00, #ffd700);
+            background-size: 100% 200%;
+            animation: ach-omega-bar 1.5s linear infinite, ach-shimmer 2s ease forwards;
+            box-shadow: 0 0 14px #ffd700, 0 0 28px #ff8c00;
+        }
+        .ach-omega .ach-pip { background: #ffd700; box-shadow: 0 0 10px #ffd700; }
+        .ach-omega .ach-title { color: #ffd700; text-shadow: 0 0 10px #ffd70099; }
+        .ach-omega .ach-header { color: #ffd700; }
+        @keyframes ach-omega-bar { 0%{background-position:0 0} 100%{background-position:0 200%} }
+        /* Trophy/icon image sizing */
+        .ach-img { width:100%; height:100%; object-fit:contain; border-radius:3px; }
+        .ach-trophy-img {
+            width:28px; height:28px; object-fit:contain;
+            filter: drop-shadow(0 0 6px var(--ach-color, #a65840));
+            animation: ach-trophy-spin 0.6s ease-out forwards;
+            animation-delay: 0.2s; opacity:0;
+        }
+        .ach-log-icon img { width:22px; height:22px; object-fit:contain; vertical-align:middle; }
+        .ach-progress-bar {
+            position: absolute;
+            bottom: 0; left: 0;
+            height: 2px;
+            background: var(--ach-color, #a65840);
+            box-shadow: 0 0 4px var(--ach-color, #a65840);
+            animation: ach-progress 4s linear forwards;
+        }
+        @keyframes ach-progress { from { width: 100%; } to { width: 0%; } }
+
+        /* Achievement log panel */
+        #ach-log-btn {
+            position: fixed;
+            top: 24px; left: 24px;
+            z-index: 80;
+        }
+        #ach-log-btn .ach-count {
+            display: inline-block;
+            background: #a65840;
+            color: #000;
+            border-radius: 2px;
+            padding: 0 4px;
+            margin-left: 4px;
+            font-weight: bold;
+            font-size: 10px;
+        }
+        #ach-log-panel {
+            position: fixed;
+            top: 58px; left: 24px;
+            z-index: 79;
+            background: #0f0e0d;
+            border: 1px solid #5c4d42;
+            border-top: 2px solid #a65840;
+            width: min(320px, 90vw);
+            max-height: 420px;
+            overflow-y: auto;
+            display: none;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+        }
+        #ach-log-panel.open { display: block; }
+        .ach-log-header {
+            padding: 10px 14px;
+            border-bottom: 1px solid #3a3530;
+            font-family: 'Special Elite', cursive;
+            font-size: 12px;
+            color: #a65840;
+            letter-spacing: 0.15em;
+            display: flex; justify-content: space-between;
+        }
+        .ach-log-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 8px 14px;
+            border-bottom: 1px solid #1e1c19;
+            font-family: 'Courier Prime', monospace;
+        }
+        .ach-log-item .ach-log-icon { font-size: 18px; flex-shrink: 0; width: 28px; text-align: center; }
+        .ach-log-item .ach-log-name { font-size: 11px; color: #cbbca5; }
+        .ach-log-item .ach-log-sub  { font-size: 9px; color: #5c4d42; }
+        .ach-log-item.locked { opacity: 0.28; filter: grayscale(0.6); }
+        .ach-log-progress {
+            padding: 8px 14px 10px;
+            font-family: 'Courier Prime', monospace;
+            font-size: 9px;
+            color: #5c4d42;
+            border-top: 1px solid #1e1c19;
+        }
+        .ach-log-pbar { height: 2px; background: #2a2520; margin-top: 4px; border-radius: 1px; }
+        .ach-log-pfill { height: 100%; background: #a65840; border-radius: 1px; transition: width 0.5s ease; }
+
+
         .report-folder {
             background: #d4cbb8;
             color: #1a1814;
@@ -227,6 +455,25 @@
 </head>
 <body class="antialiased min-h-screen relative selection:bg-[#a65840] selection:text-black">
 
+    <!-- ═══ ACHIEVEMENT SYSTEM HTML ═══ -->
+    <div id="achievement-container"></div>
+
+    <!-- Achievement Log Button -->
+    <button id="ach-log-btn" onclick="toggleAchLog()" class="border border-[#a65840] text-[#a65840] px-3 py-1 text-xs uppercase hover:bg-[#a65840] hover:text-black transition-colors font-['Courier_Prime'] tracking-widest cursor-pointer">TROPHIES <span class="ach-count" id="ach-count-badge">0</span></button>
+
+    <!-- Achievement Log Panel -->
+    <div id="ach-log-panel">
+        <div class="ach-log-header">
+            <span>TROPHY CASE</span>
+            <span id="ach-log-score">0 / 14</span>
+        </div>
+        <div id="ach-log-list"></div>
+        <div class="ach-log-progress">
+            COMPLETION
+            <div class="ach-log-pbar"><div class="ach-log-pfill" id="ach-log-pfill" style="width:0%"></div></div>
+        </div>
+    </div>
+
     <!-- Boids Canvas (Background) -->
     <canvas id="bg-canvas"></canvas>
 
@@ -235,8 +482,11 @@
     <div class="vignette"></div>
     <div class="scanline"></div>
 
-    <!-- Audio Control -->
+    <!-- Audio Control + Mobile Terminal Button -->
     <div class="fixed top-6 right-6 z-50 mix-blend-difference flex gap-4">
+        <button id="terminal-fab" class="border border-[#a65840] text-[#a65840] px-3 py-1 text-xs uppercase hover:bg-[#a65840] hover:text-black transition-colors md:hidden" title="Open Terminal">
+            &gt;_
+        </button>
         <button id="audio-toggle" class="border border-[#a65840] text-[#a65840] px-3 py-1 text-xs uppercase hover:bg-[#a65840] hover:text-black transition-colors">
             Init Audio [OFF]
         </button>
@@ -271,24 +521,33 @@
             <li><span class="key">k</span> Scroll Up</li>
             <li><span class="key">x</span> Close Modal</li>
             <li><span class="key">?</span> Toggle Help</li>
-            <li><span class="key">cmd+k</span> Terminal</li>
+            <li><span class="key">cmd+k</span> Terminal (Mac)</li>
+            <li><span class="key">ctrl+k</span> Terminal (Win/Linux)</li>
+            <li><span class="key">&gt;_</span> Terminal (Mobile)</li>
         </ul>
     </div>
 
     <!-- Terminal Overlay -->
     <div id="terminal-overlay">
         <div class="max-w-3xl w-full mx-auto flex flex-col h-full">
-            <div class="mb-4 border-b border-[#a65840] pb-2 flex justify-between">
+            <div class="mb-4 border-b border-[#a65840] pb-2 flex justify-between items-center">
                 <span>TERMINAL_V.2.1.0 [PYTHON_WASM]</span>
-                <span>CMD+K TO CLOSE</span>
+                <span id="term-close-hint" class="cursor-pointer hover:text-[#a65840] transition-colors" onclick="toggleTerminal()">[ ✕ CLOSE ]</span>
             </div>
             <div id="terminal-output" class="flex-1 overflow-y-auto mb-4 space-y-2 text-sm md:text-base text-[#cbbca5] font-mono">
-                <div class="text-[#a65840]">Welcome to ARCHIVE_OS.</div>
-                <div class="text-[#5c4d42]">Initializing Pyodide Environment... <span id="py-status">WAITING</span></div>
+                <div class="text-[#a65840]">╔══════════════════════════════════════╗</div>
+                <div class="text-[#a65840]">║        ARCHIVE_OS v2.1.0             ║</div>
+                <div class="text-[#a65840]">║   UNAUTHORIZED ACCESS DETECTED       ║</div>
+                <div class="text-[#a65840]">╚══════════════════════════════════════╝</div>
+                <div class="text-[#6b705c]">Initializing Pyodide WASM... <span id="py-status">LOADING</span></div>
+                <div class="text-[#cbbca5] mt-2">A redacted token was spotted on this archive.</div>
+                <div class="text-[#cbbca5]">Can you uncover what's hidden?</div>
+                <div class="text-[#5c4d42]">----------------------------</div>
+                <div class="text-[#6b705c]">Type <span class="text-[#a65840]">help</span> to see commands, or start with <span class="text-[#a65840]">ls</span></div>
             </div>
             <div class="flex items-center text-[#a65840]">
                 <span class="mr-2">user@archive:~$</span>
-                <input type="text" id="terminal-input" class="bg-transparent border-none outline-none flex-1 text-[#cbbca5] font-mono" autocomplete="off" autofocus>
+                <input type="text" id="terminal-input" class="bg-transparent border-none outline-none flex-1 text-[#cbbca5] font-mono" autocomplete="off" autofocus autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="send" inputmode="text">
             </div>
         </div>
     </div>
@@ -319,7 +578,7 @@
                     <span class="text-[#8c7b6d]">GHORUI</span>
                 </h1>
                 <p class="text-lg md:text-xl text-[#94918a] italic max-w-lg leading-relaxed">
-                    Software engineer navigating the digital ruins. Building tools for survival in the modern web.
+                    Some systems fail quietly. Some leave a record.
                 </p>
                 
                 <div class="flex flex-wrap gap-4 justify-center md:justify-start pt-4">
@@ -327,16 +586,22 @@
                         <span class="w-2 h-2 bg-[#a65840] rounded-full group-hover:animate-pulse"></span>
                         Contact
                     </a>
-                    <a href="https://github.com/Keykyrios" target="_blank" class="px-6 py-2 bg-transparent border border-[#5c4d42] hover:text-[#a65840] hover:border-[#a65840] transition-all text-sm uppercase tracking-widest">
+                    <a href="https://github.com/Keykyrios" target="_blank" class="px-6 py-2 bg-[#2d241f] border border-[#5c4d42] hover:border-[#a65840] hover:bg-[#3a2e26] transition-all text-sm uppercase tracking-widest flex items-center gap-2 group">
+                        <span class="w-2 h-2 bg-[#a65840] rounded-full group-hover:animate-pulse"></span>
                         GitHub
                     </a>
-                    <a href="https://www.linkedin.com/in/mitrajitghorui/" target="_blank" class="px-6 py-2 bg-transparent border border-[#5c4d42] hover:text-[#0077b5] hover:border-[#0077b5] transition-all text-sm uppercase tracking-widest">
+                    <a href="https://www.linkedin.com/in/mitrajitghorui/" target="_blank" class="px-6 py-2 bg-[#2d241f] border border-[#5c4d42] hover:border-[#a65840] hover:bg-[#3a2e26] transition-all text-sm uppercase tracking-widest flex items-center gap-2 group">
+                        <span class="w-2 h-2 bg-[#a65840] rounded-full group-hover:animate-pulse"></span>
                         LinkedIn
+                    </a>
+                    <a href="https://drive.google.com/file/d/1Fc5FWel1bDwzEPp3FKDBVfFRZLZZCOzs/view?usp=sharing" target="_blank" class="px-6 py-2 bg-[#2d241f] border border-[#5c4d42] hover:border-[#a65840] hover:bg-[#3a2e26] transition-all text-sm uppercase tracking-widest flex items-center gap-2 group">
+                        <span class="w-2 h-2 bg-[#a65840] rounded-full group-hover:animate-pulse"></span>
+                        CV
                     </a>
                 </div>
                 <!-- Telemetry Hint -->
                 <div class="flex justify-between items-center w-full max-w-lg mt-2 text-[#5c4d42] font-mono text-[10px]">
-                    <span>[CMD+K] FOR TERMINAL</span>
+                    <span>[CMD/CTRL+K] OR [&gt;_] FOR TERMINAL</span>
                     <span>[?] FOR KEY MAP</span>
                 </div>
             </div>
@@ -349,7 +614,7 @@
         <section class="border border-[#3a4034] bg-[#0f0e0d]/50 p-4 font-mono text-xs text-[#6b705c] grid grid-cols-2 md:grid-cols-4 gap-4 parallax-layer" data-speed="0.8">
             <div>
                 <span class="block text-[#4a3b32] mb-1">LOCATION</span>
-                <span id="tele-loc" class="text-[#a65840]">-48.8767, -123.3933</span>
+                <span id="tele-loc" class="text-[#a65840]" title="Point Nemo. The most remote place on Earth. Or is this a date?">-48.8767, -123.3933</span>
             </div>
             <div>
                 <span class="block text-[#4a3b32] mb-1">STATUS</span>
@@ -420,7 +685,8 @@
                         
                         <div class="text-sm text-[#9c968d] leading-relaxed font-sans border-l-2 border-[#a65840] pl-4">
                             Post-Quantum Cryptography (PQC) communication protocol. Implements <strong class="text-[#cbbca5]">Kyber KEM</strong> for secure key exchange against quantum threats.
-                            <span class="redacted" title="Use Terminal">SECURE_HASH_88A</span> verified.
+                            Integrity token <span class="redacted cursor-pointer" title="Hover to reveal • open terminal and decode this" onclick="document.getElementById('terminal-overlay').classList.add('open');document.getElementById('terminal-input').focus();">SECURE_HASH_88A</span> pending verification.
+                            <span class="block mt-2 text-[9px] font-mono text-[#5c4d42] italic">[REDACTED TOKEN DETECTED - open terminal, type <strong>ls</strong> to begin]</span>
                         </div>
 
                          <!-- Action Bar -->
@@ -489,7 +755,9 @@
         <!-- Footer -->
         <footer class="mt-20 text-center text-[#5c4d42] text-xs font-mono space-y-2 pb-12">
             <p>END OF TRANSMISSION</p>
+            <p class="text-[#3a3530] hover:text-[#5c4d42] transition-colors duration-500 cursor-default" title="The fungus crossed the species barrier in the year the world changed. Use that year as a key.">// cordyceps_year :: Integer - the world changed, and so did everything else</p>
             <p>&copy; 2026 Mitrajit Ghorui. All rights reserved.</p>
+            <p class="text-[#2a2520] text-[9px] select-all hover:text-[#5c4d42] transition-colors" title="Puzzle hint">// CTF: ls → cat qumail_manifest.txt → decode SECURE_HASH_88A → cat secrets.enc → decrypt secrets.enc --key=???? → login clicker_protocol → scan → cat .shadow_log</p>
         </footer>
 
     </main>
@@ -740,95 +1008,273 @@
             }
         });
 
+        // Mobile FAB button
+        const fabBtn = document.getElementById('terminal-fab');
+        if (fabBtn) {
+            fabBtn.addEventListener('click', toggleTerminal);
+        }
+
+        let termOpenedOnce = false;
         function toggleTerminal() {
             isOpen = !isOpen;
             termOverlay.classList.toggle('open', isOpen);
-            if(isOpen) termInput.focus();
+            if(isOpen) {
+                termInput.focus();
+                if (!termOpenedOnce) {
+                    termOpenedOnce = true;
+                    // unlockAchievement may not exist yet if script hasn't reached that block -
+                    // use setTimeout to guarantee it's defined
+                    setTimeout(() => unlockAchievement('first_contact'), 600);
+                }
+            }
         }
 
+        // CTF state tracker
+        const ctfState = { foundHash: false, decrypted: false, loggedIn: false, scanned: false, finalFlag: false };
+
         const commands = {
-            help: "Available: help, clear, whoami, ls, encrypt --message=\"TEXT\", login <password>, decrypt <file> --key=<int>",
+            help: () => {
+                return [
+                    "╔══════════════════════════════════════╗",
+                    "║     ARCHIVE_OS COMMAND REFERENCE     ║",
+                    "╚══════════════════════════════════════╝",
+                    "",
+                    "  help            - this menu",
+                    "  clear           - wipe terminal output",
+                    "  whoami          - identify current user",
+                    "  ls              - list files in current dir",
+                    "  cat <file>      - read a file",
+                    "  decode <token>  - attempt token decode",
+                    "  decrypt <file> --key=<int>  - decrypt file",
+                    "  login <password>             - escalate access",
+                    "  encrypt --message=\"TEXT\"     - encrypt via WASM",
+                    "  scan             - scan system for anomalies",
+                    "  status           - current CTF progress",
+                    "",
+                    "  TIP: start with  ls",
+                ].join("\n");
+            },
             clear: () => { termOutput.innerHTML = ''; return ''; },
             whoami: () => {
-                if(isRoot) return "Mitrajit Ghorui [ADMIN] - ACCESS: FULL";
-                return "guest_user_101 [UNAUTHORIZED] - Try gaining root access.";
+                if(isRoot) return "mitrajit_ghorui [ROOT] - CLEARANCE: OMEGA\nACCESS: FULL ARCHIVE UNLOCKED";
+                return "guest_user_101 [UNAUTHORIZED]\nACCESS LEVEL: 0 of 3\nTIP: escalate privileges to read classified files.";
             },
-            ls: "about.txt  skills.json  secrets.enc  projects/",
-            "cat about.txt": "Subject: Mitrajit Ghorui. Developer. Survivalist.",
-            "cat secrets.enc": "ENCRYPTED. Requires key. Hint: 'The year the Cordyceps outbreak began' (TLOU Game Lore).",
-            "decrypt": (args) => {
-                // CTF Logic: Check if they are trying to decrypt secrets.enc with the right year (2013)
-                if(args.includes('secrets.enc') && args.includes('--key=2013')) {
-                    return "DECRYPTION SUCCESSFUL.\nCONTENTS: password = 'clicker_protocol'";
-                } else if (args.includes('secrets.enc')) {
-                    return "DECRYPTION FAILED. Invalid Key.";
+            status: () => {
+                let steps = [];
+                steps.push(ctfState.foundHash    ? "[✓] SECURE_HASH_88A decoded"       : "[ ] SECURE_HASH_88A - not decoded");
+                steps.push(ctfState.decrypted     ? "[✓] secrets.enc decrypted"          : "[ ] secrets.enc - locked");
+                steps.push(ctfState.loggedIn      ? "[✓] root access gained"             : "[ ] root access - locked");
+                steps.push(ctfState.scanned       ? "[✓] system scan complete"           : "[ ] system scan - not run");
+                steps.push(ctfState.finalFlag     ? "[✓] FLAG CAPTURED"                  : "[ ] final flag - hidden");
+                return "=== CTF PROGRESS ===\n" + steps.join("\n");
+            },
+            scan: () => {
+                ctfState.scanned = true;
+                if(!isRoot) return "ERROR: Insufficient privileges to run SCAN.\nRequires ROOT access. Try: login <password>";
+                return [
+                    "Running deep packet inspection...",
+                    "Scanning memory sectors...",
+                    "",
+                    "  [!] ANOMALY DETECTED in sector 0x88A",
+                    "  [!] Hidden file found: .shadow_log",
+                    "  [i] Run: cat .shadow_log",
+                ].join("\n");
+            },
+            ls: () => {
+                return [
+                    "drwxr-xr-x  archive/",
+                    "-rw-r--r--  about.txt",
+                    "-rw-r--r--  skills.json",
+                    "-rw-------  secrets.enc       [ENCRYPTED]",
+                    "-rw-r--r--  qumail_manifest.txt",
+                    "",
+                    "  1 hidden file. Run scan after gaining root.",
+                ].join("\n");
+            },
+            "cat about.txt": () => "Subject: Mitrajit Ghorui.\nRole: Developer. Cryptographer. Survivalist.\nNote: 'The clicker knows the year. Do you?'",
+            "cat skills.json": () => `{
+  "security": ["Kyber KEM", "Wireshark", "CTF"],
+  "frontend": ["React", "Three.js"],
+  "backend":  ["Python", "WASM"],
+  "hint": "The year is encoded in lore. TLOU lore."
+}`,
+            "cat qumail_manifest.txt": () => {
+                return [
+                    "=== QUMAIL MANIFEST v0.3 ===",
+                    "Protocol: Post-Quantum Key Encapsulation",
+                    "Integrity Token: SECURE_HASH_88A",
+                    "",
+                    "  To verify integrity, decode the token:",
+                    "  > decode SECURE_HASH_88A",
+                    "",
+                    "  Token was sealed with a temporal key.",
+                    "  The key is a year. Find it in the lore.",
+                ].join("\n");
+            },
+            "cat secrets.enc": () => {
+                return [
+                    "=== ENCRYPTED FILE ===",
+                    "Algorithm: AES-256 (temporal key)",
+                    "Contents: [LOCKED]",
+                    "",
+                    "  Hint: The Cordyceps fungus crossed species",
+                    "  in a specific year. That year is your key.",
+                    "  (Source: The Last of Us game lore, not the show)",
+                    "",
+                    "  Usage: decrypt secrets.enc --key=<year>",
+                ].join("\n");
+            },
+            "cat .shadow_log": () => {
+                if(!isRoot) return "Permission denied. Root access required.";
+                ctfState.finalFlag = true;
+                return [
+                    "=== .shadow_log - CLASSIFIED ===",
+                    "",
+                    "  ACCESS LOG:",
+                    "  2013-09-26 - Cordyceps breach confirmed.",
+                    "  2024-11-12 - QuMail protocol initialized.",
+                    "  2025-08-04 - Corollary theorem engine v1 deployed.",
+                    "",
+                    "  DEVELOPER NOTE:",
+                    "  'I built these systems in the ruins of trust.",
+                    "   If you found this - you earned it.'",
+                    "",
+                    "  ╔══════════════════════════════════════════╗",
+                    "  ║  FLAG: CTF{archive_unlocked_well_played} ║",
+                    "  ╚══════════════════════════════════════════╝",
+                    "",
+                    "  Congratulations. You are now an OMEGA clearance agent.",
+                ].join("\n");
+            },
+            "decode": (args) => {
+                const token = args.trim();
+                if(token === "SECURE_HASH_88A") {
+                    ctfState.foundHash = true;
+                    return [
+                        "Decoding token: SECURE_HASH_88A...",
+                        "",
+                        "  SHA3-256 partial match found.",
+                        "  Token linked to: qumail_manifest.txt",
+                        "  Seal type: TEMPORAL_KEY (integer)",
+                        "",
+                        "  The token was sealed with a year.",
+                        "  The TLOU Cordyceps outbreak year is the key.",
+                        "  Usage: decrypt secrets.enc --key=<year>",
+                        "",
+                        "  Run: cat secrets.enc  for more context.",
+                    ].join("\n");
                 }
-                return "Usage: decrypt <file> --key=<int>";
+                return `Unknown token: ${token}\nRun ls to find valid tokens.`;
+            },
+            "decrypt": (args) => {
+                if(args.includes('secrets.enc') && args.includes('--key=2013')) {
+                    ctfState.decrypted = true;
+                    return [
+                        "Decryption key accepted.",
+                        "Decrypting secrets.enc...",
+                        "",
+                        "  ██████████████████████ 100%",
+                        "",
+                        "=== DECRYPTED CONTENTS ===",
+                        "  password = 'clicker_protocol'",
+                        "  clearance = OMEGA",
+                        "",
+                        "  Use: login clicker_protocol",
+                        "  Then: scan  to find hidden files.",
+                    ].join("\n");
+                } else if(args.includes('secrets.enc')) {
+                    const keyMatch = args.match(/--key=(\d+)/);
+                    const tried = keyMatch ? keyMatch[1] : "???";
+                    return [
+                        `Decryption failed. Key '${tried}' rejected.`,
+                        "  Hint: Think TLOU lore. When did it all begin?",
+                        "  The game, not the show. The year of first infection.",
+                    ].join("\n");
+                }
+                return "Usage: decrypt <file> --key=<integer>\nExample: decrypt secrets.enc --key=????";
             },
             "login": (args) => {
-                const pass = args.split(' ')[1];
+                const pass = args.trim();
                 if(pass === 'clicker_protocol') {
                     isRoot = true;
-                    return "ACCESS GRANTED. Welcome, Administrator.";
+                    ctfState.loggedIn = true;
+                    return [
+                        "Verifying credentials...",
+                        "Password match: clicker_protocol",
+                        "",
+                        "  ██ ACCESS GRANTED ██",
+                        "  Welcome, Administrator.",
+                        "  Clearance: OMEGA",
+                        "",
+                        "  New commands unlocked: scan, cat .shadow_log",
+                        "  Run: scan  to sweep for anomalies.",
+                    ].join("\n");
                 }
-                return "ACCESS DENIED.";
+                if(pass === '') return "Usage: login <password>";
+                return `ACCESS DENIED. '${pass}' rejected.\n  TIP: decrypt secrets.enc first to find the password.`;
             },
             "encrypt": (args) => {
-                if(!pyodideReady) return "ERROR: WASM ENGINE LOADING...";
+                if(!pyodideReady) return "ERROR: WASM ENGINE NOT READY. Wait for: PYTHON_WASM_ENGINE: ONLINE";
                 const msgMatch = args.match(/--message="([^"]+)"/);
-                if(!msgMatch) return "Usage: encrypt --message=\"YOUR TEXT\"";
-                
+                if(!msgMatch) return "Usage: encrypt --message=\"YOUR TEXT\"\nExample: encrypt --message=\"hello world\"";
                 const msg = msgMatch[1];
                 try {
-                    // Call Python function defined in Preloader
-                    const result = pyodide.runPython(`encrypt_message("${msg}")`);
-                    return `OUTPUT: ${result}`;
+                    const result = pyodide.runPython(`encrypt_message("${msg.replace(/"/g,'')}")`);
+                    return `Encrypting via Kyber KEM simulation...\nOUTPUT: ${result}`;
                 } catch(e) {
                     return `PYTHON ERROR: ${e}`;
                 }
             },
-            "decode SECURE_HASH_88A": () => {
-                console.log("FLAG CAPTURED: CTF{legacy_systems_never_die}");
-                return "DECRYPTION SUCCESSFUL. CHECK CONSOLE.";
-            }
         };
 
         function log(text, colorClass = "text-[#cbbca5]") {
-            const div = document.createElement('div');
-            div.className = colorClass;
-            div.innerText = text;
-            termOutput.appendChild(div);
+            const lines = String(text).split('\n');
+            lines.forEach(line => {
+                const div = document.createElement('div');
+                div.className = colorClass;
+                div.innerText = line;
+                termOutput.appendChild(div);
+            });
             termOutput.scrollTop = termOutput.scrollHeight;
         }
 
         termInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 const raw = termInput.value.trim();
-                // Simple parsing to handle commands with arguments
-                const parts = raw.split(' ');
-                const cmd = parts[0];
-                const args = raw.substring(cmd.length).trim();
-                
+                if(!raw) return;
+
                 log(`user@archive:~$ ${raw}`, "text-[#a65840]");
                 termInput.value = '';
-                
-                // Direct match
-                if (commands[raw]) {
-                     const resp = typeof commands[raw] === 'function' ? commands[raw](args) : commands[raw];
-                     if(resp) log(resp);
-                     return;
+
+                // parse: first word = cmd, rest = args
+                const spaceIdx = raw.indexOf(' ');
+                const cmd = spaceIdx === -1 ? raw : raw.slice(0, spaceIdx);
+                const args = spaceIdx === -1 ? '' : raw.slice(spaceIdx + 1).trim();
+
+                // try exact full match first (for "cat about.txt" etc)
+                if (typeof commands[raw] === 'function') {
+                    const resp = commands[raw](args);
+                    if(resp) log(resp);
+                    return;
+                }
+                if (typeof commands[raw] === 'string') {
+                    log(commands[raw]);
+                    return;
                 }
 
-                // Argument match
-                if (commands[cmd]) {
-                    const resp = typeof commands[cmd] === 'function' ? commands[cmd](args) : commands[cmd];
+                // try cmd match with args
+                if (typeof commands[cmd] === 'function') {
+                    const resp = commands[cmd](args);
                     if(resp) log(resp);
-                } else if (cmd === 'cat') {
-                     // Fallback for cat if full string didn't match
-                     log(`Access Denied: ${args}`, "text-red-500");
-                } else {
-                    log(`Command not found: ${cmd}`);
+                    return;
                 }
+                if (typeof commands[cmd] === 'string') {
+                    log(commands[cmd]);
+                    return;
+                }
+
+                // unknown
+                log(`Command not found: '${cmd}'\nType 'help' for available commands.`, "text-red-400");
             }
         });
 
@@ -1070,12 +1516,529 @@
         });
         window.addEventListener('mouseup', () => draggedNode = null);
 
+        // Touch Drag Logic (mobile)
+        nCanvas.addEventListener('touchstart', e => {
+            const r = nCanvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            const mx = touch.clientX - r.left, my = touch.clientY - r.top;
+            draggedNode = nodes.find(n => Math.hypot(mx-n.x, my-n.y) < n.r+15);
+            if(draggedNode) e.preventDefault();
+        }, { passive: false });
+        nCanvas.addEventListener('touchmove', e => {
+            if(draggedNode) {
+                e.preventDefault();
+                const r = nCanvas.getBoundingClientRect();
+                const touch = e.touches[0];
+                draggedNode.x = touch.clientX - r.left;
+                draggedNode.y = touch.clientY - r.top;
+            }
+        }, { passive: false });
+        nCanvas.addEventListener('touchend', () => draggedNode = null);
+
         // Console CTF
         console.log("%c STOP.", "color: red; font-size: 30px; font-weight: bold;");
         console.log("%c Unauthorized access to Survivor Archive console.", "color: white;");
 
+        // ═══════════════════════════════════════════
+        //   ACHIEVEMENT ENGINE
+        // ═══════════════════════════════════════════
+        // Icon/trophy helpers - no emoji, pure ASCII art or inline SVG strings
+        const ICONS = {
+            terminal:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:26px;height:26px;color:var(--ach-color)"><rect x="2" y="3" width="20" height="14" rx="2"/><polyline points="8 21 16 21"/><line x1="12" y1="17" x2="12" y2="21"/><polyline points="6 8 9 11 6 14" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+            ghost:     `<svg viewBox="0 0 24 24" fill="currentColor" style="width:26px;height:26px;color:var(--ach-color)"><path d="M12 2a8 8 0 0 0-8 8v10l3-3 2 2 2-2 2 2 2-2 3 3V10a8 8 0 0 0-8-8z"/><circle cx="9" cy="10" r="1.2" fill="#0f0e0d"/><circle cx="15" cy="10" r="1.2" fill="#0f0e0d"/></svg>`,
+            folder:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:26px;height:26px;color:var(--ach-color)"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><line x1="3" y1="11" x2="21" y2="11"/></svg>`,
+            search:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:26px;height:26px;color:var(--ach-color)"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/><line x1="8" y1="11" x2="14" y2="11"/><line x1="11" y1="8" x2="11" y2="14"/></svg>`,
+            key:       `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:26px;height:26px;color:var(--ach-color)"><circle cx="8" cy="12" r="4"/><line x1="12" y1="12" x2="22" y2="12"/><line x1="19" y1="12" x2="19" y2="15"/><line x1="22" y1="12" x2="22" y2="15"/></svg>`,
+            lightning: `<svg viewBox="0 0 24 24" fill="currentColor" style="width:26px;height:26px;color:var(--ach-color)"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+            brain:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:26px;height:26px;color:var(--ach-color)"><path d="M9 4a3 3 0 00-3 3c-1.1.3-2 1.3-2 2.5a2.5 2.5 0 001.5 2.3C5 13.4 6.4 15 8 15h1v5h6v-5h1c1.6 0 3-1.6 3.5-3.2A2.5 2.5 0 0021 9.5c0-1.2-.9-2.2-2-2.5A3 3 0 0015 4a3 3 0 00-6 0z"/></svg>`,
+            blueprint: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:26px;height:26px;color:var(--ach-color)"><rect x="3" y="3" width="18" height="18" rx="1"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>`,
+            lava:      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:26px;height:26px;color:var(--ach-color)"><path d="M2 20c2-4 5-3 6-6s-1-5 2-8c0 4 3 5 3 8s3 2 5-1c0 5-3 7-6 7H2z" stroke-linejoin="round"/><line x1="2" y1="22" x2="22" y2="22"/></svg>`,
+            konami:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:26px;height:26px;color:var(--ach-color)"><rect x="2" y="7" width="20" height="12" rx="3"/><circle cx="16" cy="13" r="1.2" fill="currentColor"/><circle cx="19" cy="11" r="1.2" fill="currentColor"/><line x1="6" y1="11" x2="6" y2="15"/><line x1="4" y1="13" x2="8" y2="13"/></svg>`,
+            star:      `<svg viewBox="0 0 24 24" fill="currentColor" style="width:26px;height:26px;color:var(--ach-color)"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
+            cursor:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:26px;height:26px;color:var(--ach-color)"><path d="M4 3l16 7-7 3-3 7z" stroke-linejoin="round"/><line x1="13" y1="13" x2="19" y2="19" stroke-linecap="round"/></svg>`,
+            inspect:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:26px;height:26px;color:var(--ach-color)"><path d="M10 3H3v7"/><path d="M21 14v7h-7"/><path d="M3 10L12 12l-2-9"/><circle cx="18" cy="6" r="3"/><line x1="20.1" y1="8.1" x2="22" y2="10"/></svg>`,
+            ghost2:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:26px;height:26px;color:var(--ach-color)"><path d="M12 2a8 8 0 0 0-8 8v10l3-3 2 2 2-2 2 2 2-2 3 3V10a8 8 0 0 0-8-8z" stroke-linejoin="round"/><line x1="9" y1="10" x2="9" y2="10" stroke-linecap="round" stroke-width="2"/><line x1="15" y1="10" x2="15" y2="10" stroke-linecap="round" stroke-width="2"/></svg>`,
+        };
+        const TROPHIES = {
+            bronze:   `<svg viewBox="0 0 24 24" fill="none" style="width:28px;height:28px" class="ach-trophy-img"><circle cx="12" cy="8" r="6" fill="#cd7f32" stroke="#a0622a" stroke-width="1"/><rect x="9" y="14" width="6" height="3" fill="#a0622a"/><rect x="7" y="17" width="10" height="2" rx="1" fill="#cd7f32"/></svg>`,
+            silver:   `<svg viewBox="0 0 24 24" fill="none" style="width:28px;height:28px" class="ach-trophy-img"><circle cx="12" cy="8" r="6" fill="#a8a9ad" stroke="#888" stroke-width="1"/><rect x="9" y="14" width="6" height="3" fill="#888"/><rect x="7" y="17" width="10" height="2" rx="1" fill="#a8a9ad"/></svg>`,
+            gold:     `<svg viewBox="0 0 24 24" fill="none" style="width:28px;height:28px" class="ach-trophy-img"><circle cx="12" cy="8" r="6" fill="#ffd700" stroke="#c8a800" stroke-width="1"/><rect x="9" y="14" width="6" height="3" fill="#c8a800"/><rect x="7" y="17" width="10" height="2" rx="1" fill="#ffd700"/></svg>`,
+            purple:   `<svg viewBox="0 0 24 24" fill="none" style="width:28px;height:28px" class="ach-trophy-img"><circle cx="12" cy="8" r="6" fill="#c084fc" stroke="#9333ea" stroke-width="1"/><rect x="9" y="14" width="6" height="3" fill="#9333ea"/><rect x="7" y="17" width="10" height="2" rx="1" fill="#c084fc"/></svg>`,
+            omega:    `<svg viewBox="0 0 24 24" fill="none" style="width:28px;height:28px" class="ach-trophy-img"><polygon points="12,1 15,8 22,9 17,14 18,21 12,18 6,21 7,14 2,9 9,8" fill="#ffd700" stroke="#ff8c00" stroke-width="0.8"/><text x="12" y="15" text-anchor="middle" font-size="7" fill="#1a1814" font-family="monospace" font-weight="bold">Ω</text></svg>`,
+            locked:   `<svg viewBox="0 0 24 24" fill="none" stroke="#3a3530" stroke-width="1.5" style="width:22px;height:22px"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>`,
+        };
+
+        const ACH_DEFS = [
+            {
+                id: 'first_contact',
+                title: 'First Contact',
+                desc: 'You opened the terminal. The archive stirs.',
+                icon: ICONS.terminal,
+                rarity: 'bronze',
+                trophy: TROPHIES.bronze,
+                rarityLabel: 'BRONZE'
+            },
+            {
+                id: 'ghost_protocol',
+                title: 'Ghost Protocol',
+                desc: 'Identified as an unknown entity.',
+                icon: ICONS.ghost,
+                rarity: 'bronze',
+                trophy: TROPHIES.bronze,
+                rarityLabel: 'BRONZE'
+            },
+            {
+                id: 'archivist',
+                title: 'Archivist',
+                desc: 'Read every file in the archive.',
+                icon: ICONS.folder,
+                rarity: 'silver',
+                trophy: TROPHIES.silver,
+                rarityLabel: 'SILVER'
+            },
+            {
+                id: 'token_hunter',
+                title: 'Token Hunter',
+                desc: 'Decoded SECURE_HASH_88A. You are getting closer.',
+                icon: ICONS.search,
+                rarity: 'silver',
+                trophy: TROPHIES.silver,
+                rarityLabel: 'SILVER'
+            },
+            {
+                id: 'quantum_key',
+                title: 'Quantum Key',
+                desc: 'The year unlocked the encrypted vault.',
+                icon: ICONS.key,
+                rarity: 'gold',
+                trophy: TROPHIES.gold,
+                rarityLabel: 'GOLD'
+            },
+            {
+                id: 'root_access',
+                title: 'Root Access',
+                desc: 'Administrator privileges granted. Clicker protocol accepted.',
+                icon: ICONS.lightning,
+                rarity: 'gold',
+                trophy: TROPHIES.gold,
+                rarityLabel: 'GOLD'
+            },
+            {
+                id: 'neural_hacker',
+                title: 'Neural Hacker',
+                desc: 'Reached into the knowledge graph and rearranged the nodes.',
+                icon: ICONS.brain,
+                rarity: 'purple',
+                trophy: TROPHIES.purple,
+                rarityLabel: 'PURPLE'
+            },
+            {
+                id: 'blueprints',
+                title: 'Blueprints',
+                desc: 'Opened both project inspectors.',
+                icon: ICONS.blueprint,
+                rarity: 'purple',
+                trophy: TROPHIES.purple,
+                rarityLabel: 'PURPLE'
+            },
+            {
+                id: 'floor_is_lava',
+                title: 'The Floor is Lava',
+                desc: 'You scrolled all the way to the bottom. End of transmission.',
+                icon: ICONS.lava,
+                rarity: 'bronze',
+                trophy: TROPHIES.bronze,
+                rarityLabel: 'BRONZE'
+            },
+            {
+                id: 'konami',
+                title: 'Old Codec',
+                desc: 'You remember. Up up down down...',
+                icon: ICONS.konami,
+                rarity: 'silver',
+                trophy: TROPHIES.silver,
+                rarityLabel: 'SILVER'
+            },
+            {
+                id: 'omega_clearance',
+                title: 'OMEGA CLEARANCE',
+                desc: 'You found the flag. The archive is yours. Well played.',
+                icon: ICONS.star,
+                rarity: 'omega',
+                trophy: TROPHIES.omega,
+                rarityLabel: 'RARE GOLD'
+            },
+            {
+                id: 'ghost_cursor',
+                title: 'Ghost in the Shell',
+                desc: 'You left traces. The archive watched your every move.',
+                icon: ICONS.cursor,
+                rarity: 'bronze',
+                trophy: TROPHIES.bronze,
+                rarityLabel: 'BRONZE'
+            },
+            {
+                id: 'devtools_open',
+                title: 'Inspector Gadget',
+                desc: 'You looked behind the curtain. Respect.',
+                icon: ICONS.inspect,
+                rarity: 'silver',
+                trophy: TROPHIES.silver,
+                rarityLabel: 'SILVER'
+            },
+            {
+                id: 'tab_ghost',
+                title: 'You Left.',
+                desc: 'The archive noticed. It always does.',
+                icon: ICONS.ghost2,
+                rarity: 'bronze',
+                trophy: TROPHIES.bronze,
+                rarityLabel: 'BRONZE'
+            },
+        ];
+
+        const unlockedAchs = new Set();
+        let inspectorsOpened = new Set();
+        let catsRead = new Set();
+        let achQueue = [];
+        let achShowing = false;
+
+        function unlockAchievement(id) {
+            if (unlockedAchs.has(id)) return;
+            unlockedAchs.add(id);
+            const def = ACH_DEFS.find(a => a.id === id);
+            if (!def) return;
+            achQueue.push(def);
+            updateAchLog();
+            if (!achShowing) processAchQueue();
+        }
+
+        function processAchQueue() {
+            if (achQueue.length === 0) { achShowing = false; return; }
+            achShowing = true;
+            const def = achQueue.shift();
+            showToast(def);
+        }
+
+        function showToast(def) {
+            const container = document.getElementById('achievement-container');
+            const toast = document.createElement('div');
+            toast.className = 'achievement-toast ach-' + def.rarity;
+            toast.innerHTML = `
+                <div class=ach-rarity-bar></div>
+                <div class=ach-icon-wrap>${def.icon}</div>
+                <div class=ach-text>
+                    <div class=ach-header>
+                        <span class=ach-pip></span>
+                        ${def.rarityLabel} UNLOCKED
+                    </div>
+                    <div class=ach-title>${def.title}</div>
+                    <div class=ach-desc>${def.desc}</div>
+                </div>
+                <div class="ach-trophy" style="flex-shrink:0;animation:none;opacity:1;">${def.trophy}</div>
+                <div class=ach-progress-bar></div>
+            `;
+            container.appendChild(toast);
+
+            // Trigger show
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => { toast.classList.add('show'); });
+            });
+
+            // Auto-hide after 4.5s
+            const hideDelay = def.rarity === 'platinum' ? 6000 : 4500;
+            setTimeout(() => {
+                toast.classList.add('hide');
+                setTimeout(() => {
+                    toast.remove();
+                    // next in queue after a short gap
+                    setTimeout(processAchQueue, 300);
+                }, 450);
+            }, hideDelay);
+        }
+
+        function updateAchLog() {
+            const count = unlockedAchs.size;
+            const total = ACH_DEFS.length;
+            document.getElementById('ach-count-badge').textContent = count;
+            document.getElementById('ach-log-score').textContent = count + ' / ' + total;
+            const pct = Math.round(count / total * 100);
+            document.getElementById('ach-log-pfill').style.width = pct + '%';
+
+            const list = document.getElementById('ach-log-list');
+            list.innerHTML = '';
+            ACH_DEFS.forEach(def => {
+                const unlocked = unlockedAchs.has(def.id);
+                const item = document.createElement('div');
+                item.className = 'ach-log-item' + (unlocked ? '' : ' locked');
+                item.innerHTML = `
+                    <div class=ach-log-icon>${unlocked ? def.icon : TROPHIES.locked}</div>
+                    <div>
+                        <div class=ach-log-name>${unlocked ? def.title : '???'}</div>
+                        <div class=ach-log-sub>${unlocked ? def.desc : def.rarityLabel}</div>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function toggleAchLog() {
+            document.getElementById('ach-log-panel').classList.toggle('open');
+        }
+
+        // Close log on outside click
+        document.addEventListener('click', (e) => {
+            const panel = document.getElementById('ach-log-panel');
+            const btn = document.getElementById('ach-log-btn');
+            if (panel.classList.contains('open') && !panel.contains(e.target) && !btn.contains(e.target)) {
+                panel.classList.remove('open');
+            }
+        });
+
+        // ── ACHIEVEMENT TRIGGERS ──────────────────
+        // first_contact is wired inside toggleTerminal() above.
+        // ghost_protocol, archivist, token_hunter fired from terminal keydown listener below.
+
+        // 5. Neural Hacker - drag a node
+        const _origMousedown = nCanvas.onmousedown;
+        let neuralDragged = false;
+        nCanvas.addEventListener('mousedown', () => {
+            if (!neuralDragged) {
+                setTimeout(() => {
+                    if (draggedNode) {
+                        neuralDragged = true;
+                        unlockAchievement('neural_hacker');
+                    }
+                }, 150);
+            }
+        });
+        nCanvas.addEventListener('touchstart', () => {
+            if (!neuralDragged) {
+                setTimeout(() => {
+                    if (draggedNode) {
+                        neuralDragged = true;
+                        unlockAchievement('neural_hacker');
+                    }
+                }, 150);
+            }
+        }, {passive: true});
+
+        // 6. Blueprint Reader - both inspectors opened
+        const _origOpenInspector = openInspector;
+        openInspector = function(type) {
+            _origOpenInspector(type);
+            inspectorsOpened.add(type);
+            if (inspectorsOpened.has('corollary') && inspectorsOpened.has('qumail')) {
+                setTimeout(() => unlockAchievement('blueprints'), 800);
+            }
+        };
+
+        // 7. Deep Dive - scroll to bottom
+        let floorLavaDone = false;
+        window.addEventListener('scroll', () => {
+            if (floorLavaDone) return;
+            const scrollBottom = window.scrollY + window.innerHeight;
+            const docHeight = document.documentElement.scrollHeight;
+            if (scrollBottom >= docHeight - 60) {
+                floorLavaDone = true;
+                unlockAchievement('floor_is_lava');
+            }
+        });
+
+        // Patch terminal command handlers to fire achievements
+        const _origTermKeydown = termInput.onkeydown;
+        termInput.addEventListener('keydown', (e) => {
+            if (e.key !== 'Enter') return;
+            const raw = termInput.value.trim().toLowerCase();
+
+            if (raw === 'whoami') setTimeout(() => unlockAchievement('ghost_protocol'), 300);
+
+            // cat files tracking
+            if (raw.startsWith('cat ')) {
+                catsRead.add(raw);
+                const needed = ['cat about.txt','cat skills.json','cat secrets.enc','cat qumail_manifest.txt'];
+                if (needed.every(c => catsRead.has(c))) setTimeout(() => unlockAchievement('archivist'), 300);
+            }
+        }, true); // capture phase so fires before main handler
+
+        // CTF state achievements fired from within commands via observer
+        const _origCtfProxy = new Proxy(ctfState, {
+            set(obj, prop, val) {
+                obj[prop] = val;
+                if (prop === 'foundHash'  && val) setTimeout(() => unlockAchievement('token_hunter'), 400);
+                if (prop === 'decrypted'  && val) setTimeout(() => unlockAchievement('quantum_key'),  400);
+                if (prop === 'loggedIn'   && val) setTimeout(() => unlockAchievement('root_access'),  400);
+                if (prop === 'finalFlag'  && val) setTimeout(() => unlockAchievement('omega_clearance'), 800);
+                return true;
+            }
+        });
+        // Replace ctfState references in commands with proxied version
+        Object.assign(ctfState, {}); // keep object, monkey-patch set ops via re-assignment trick
+
+        // Since ctfState is a plain object, wrap the flags manually:
+        // We intercept the commands that set ctfState properties
+        const _achWatcher = setInterval(() => {
+            if (ctfState.foundHash && !unlockedAchs.has('token_hunter'))   unlockAchievement('token_hunter');
+            if (ctfState.decrypted && !unlockedAchs.has('quantum_key'))    unlockAchievement('quantum_key');
+            if (ctfState.loggedIn  && !unlockedAchs.has('root_access'))    unlockAchievement('root_access');
+            if (ctfState.finalFlag && !unlockedAchs.has('omega_clearance')) unlockAchievement('omega_clearance');
+        }, 500);
+
+        // ── EASTER EGGS ─────────────────────────────
+
+        // 1. KONAMI CODE  ↑↑↓↓←→←→BA
+        (function() {
+            const SEQ = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+            let pos = 0;
+            document.addEventListener('keydown', (e) => {
+                if (e.key === SEQ[pos]) {
+                    pos++;
+                    if (pos === SEQ.length) {
+                        pos = 0;
+                        unlockAchievement('konami');
+                        // Brief screen glitch
+                        document.body.style.filter = 'invert(1) hue-rotate(180deg)';
+                        setTimeout(() => document.body.style.filter = '', 300);
+                    }
+                } else { pos = 0; }
+            });
+        })();
+
+        // 2. CURSOR TRAIL GLITCH - tiny `>` chars that decay
+        (function() {
+            let cursorAchDone = false;
+            let cursorMoveCount = 0;
+            window.addEventListener('mousemove', (e) => {
+                if (!cursorAchDone) {
+                    cursorMoveCount++;
+                    if (cursorMoveCount === 30) {
+                        cursorAchDone = true;
+                        unlockAchievement('ghost_cursor');
+                    }
+                }
+                if (Math.random() > 0.18) return; // sparse
+                const span = document.createElement('span');
+                span.textContent = Math.random() > 0.5 ? '>' : '_';
+                span.style.cssText = `position:fixed;left:${e.clientX+4}px;top:${e.clientY}px;color:#a65840;font-family:monospace;font-size:11px;pointer-events:none;z-index:9999;opacity:0.7;transition:opacity 0.6s,transform 0.6s;`;
+                document.body.appendChild(span);
+                requestAnimationFrame(() => {
+                    span.style.opacity = '0';
+                    span.style.transform = `translateY(${-10 - Math.random()*10}px)`;
+                });
+                setTimeout(() => span.remove(), 650);
+            });
+        })();
+
+        // 3. HIDDEN CONSOLE MESSAGES - reward devtools openers
+        (function() {
+            // Detect devtools via timing trick
+            let devtoolsOpen = false;
+            const devCheck = setInterval(() => {
+                const before = performance.now();
+                // eslint-disable-next-line no-debugger
+                debugger; // pauses if devtools open - timing spike
+                const after = performance.now();
+                if (after - before > 100 && !devtoolsOpen) {
+                    devtoolsOpen = true;
+                    clearInterval(devCheck);
+                    unlockAchievement('devtools_open');
+                }
+            }, 1000);
+
+            const lines = [
+                "%c// You opened devtools. Respect.",
+                "%c// This whole site is a CTF. Have you found the flag yet?",
+                "%c// Hint: the year the fungus crossed. TLOU lore. Not the show.",
+                "%c// Try: decrypt secrets.enc --key=????  in the terminal.",
+                "%c// If you get the flag, you earned it. - M.G.",
+            ];
+            const style = "color:#a65840;font-family:monospace;font-size:12px;";
+            lines.forEach((l, i) => setTimeout(() => console.log(l, style), i * 800));
+        })();
+
+        // 4. TITLE BAR GLITCH - tab title flickers when user leaves
+        (function() {
+            const original = document.title;
+            const alts = ['[SIGNAL LOST]', '> ACCESS DENIED', '// WHO ARE YOU', original];
+            let idx = 0, ticker = null;
+            let tabLeftOnce = false;
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    if (!tabLeftOnce) {
+                        tabLeftOnce = true;
+                        // fire after they come back so toast is visible
+                    }
+                    ticker = setInterval(() => {
+                        document.title = alts[idx % alts.length];
+                        idx++;
+                    }, 700);
+                } else {
+                    clearInterval(ticker);
+                    document.title = original;
+                    idx = 0;
+                    if (tabLeftOnce) {
+                        setTimeout(() => unlockAchievement('tab_ghost'), 600);
+                        tabLeftOnce = false; // only fires once
+                    }
+                }
+            });
+        })();
+
+        // 5. SECRET TERMINAL COMMANDS
+        // "sudo" → snark
+        commands['sudo'] = () => "Nice try. This is not that kind of archive.\n  (no sudo here - escalate via: login <password>)";
+        // "ls -la" or "ls -a" → reveals .shadow_log even before root as a tease
+        commands['ls -la'] = commands['ls -a'] = () => {
+            return [
+                "drwxr-xr-x  archive/",
+                "-rw-r--r--  about.txt",
+                "-rw-r--r--  skills.json",
+                "-rw-------  secrets.enc       [ENCRYPTED]",
+                "-rw-r--r--  qumail_manifest.txt",
+                "-r--------  .shadow_log        [ROOT ONLY]   <-- there it is.",
+            ].join("\n");
+        };
+        // "exit" / "quit"
+        commands['exit'] = commands['quit'] = () => {
+            setTimeout(() => { if(isOpen) toggleTerminal(); }, 400);
+            return "Closing terminal connection...";
+        };
+        // "uname -a"
+        commands['uname'] = commands['uname -a'] = () => "ARCHIVE_OS 2.1.0-cordyceps #88A SMP PREEMPT Mon Sep 26 2013";
+        // "date"
+        commands['date'] = () => {
+            const d = new Date();
+            return `${d.toUTCString()}\n  [ARCHIVE TIME]: 2013-09-26T00:00:00Z  // the day it ended`;
+        };
+        // "history"
+        commands['history'] = () => [
+            "  1  ls",
+            "  2  cat qumail_manifest.txt",
+            "  3  decode SECURE_HASH_88A",
+            "  4  cat secrets.enc",
+            "  5  decrypt secrets.enc --key=????",
+            "  [REDACTED ENTRIES]",
+        ].join("\n");
+        // "rm -rf /" - fun
+        commands['rm'] = (args) => {
+            if (args.includes('-rf') || args.includes('/')) {
+                return [
+                    "Initiating purge sequence...",
+                    "  [!] PERMISSION DENIED",
+                    "  You do not have the clearance to delete this archive.",
+                    "  The archive deletes you.",
+                ].join("\n");
+            }
+            return "rm: missing operand\nUsage: rm [-rf] <path>";
+        };
+        // "ping"
+        commands['ping'] = () => "PING archive.local: 64 bytes - time=2013ms  // suspicious latency";
+        // "man"
+        commands['man'] = (args) => `No manual entry for '${args||'man'}'.\nThis is not that kind of system.\n  Try: help`;
+
+        // Init log display
+        updateAchLog();
+
     </script>
 </body>
 </html>
-
-
