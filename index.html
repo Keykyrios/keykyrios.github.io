@@ -5,31 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mitrajit Ghorui | Archive [SECURE]</title>
 
-    <!-- ═══ SECURITY HEADERS (via meta — GitHub Pages has no server header control) ═══ -->
-    <!-- Note: Strict-Transport-Security cannot be set via meta tag per spec.
-         GitHub Pages does serve over HTTPS and sends this header at the server level.
-         The upgrade-insecure-requests CSP directive below enforces HTTPS for sub-resources. -->
-    <!-- X-Frame-Options: prevents clickjacking by disallowing framing -->
     <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
-    <!-- X-Content-Type-Options: stops MIME-type sniffing -->
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <!-- Referrer-Policy: only send origin on same-origin requests -->
     <meta name="referrer" content="strict-origin-when-cross-origin">
-    <!-- Permissions-Policy: disable powerful APIs not used by this site -->
     <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()">
-    <!-- Content-Security-Policy:
-         default-src 'self'           — base rule: only same origin
-         script-src  — allow self + whitelisted CDNs needed by the page (tailwind, three.js, pyodide, mathjax)
-         style-src   — allow self + Google Fonts + inline (needed by tailwind and inline <style>)
-         font-src    — Google Fonts CDN
-         img-src     — self + data URIs (noise SVG backgrounds use data:)
-         connect-src — GitHub API for telemetry
-         worker-src  — pyodide uses web workers
-         child-src   — pyodide iframes
-         object-src  'none'           — block Flash/plugins
-         base-uri    'self'           — prevent base tag injection
-         form-action 'self'           — restrict form submissions
-    -->
+
     <meta http-equiv="Content-Security-Policy" content="
         default-src 'self';
         script-src 'self' 'unsafe-inline'
@@ -55,17 +35,14 @@
     ">
 
     <link rel="icon" href="favicon.png" type="image/png">
-    <!-- External scripts loaded with crossorigin for tamper detection -->
     <script src="https://cdn.tailwindcss.com" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"
             integrity="sha512-dLxUelApnYxpLt6K2iomGngnHO83iUvZytA3YjDUCjT0HDOHKXnVYdf3hU4JjM8uEhxf9nD1/ey98U3t2vZ0A=="
             crossorigin="anonymous"
             referrerpolicy="no-referrer"></script>
-    <!-- Pyodide v0.23.4 -->
     <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"
             crossorigin="anonymous"
             referrerpolicy="no-referrer"></script>
-    <!-- MathJax for LaTeX Rendering -->
     <script id="MathJax-script" async
             src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
             crossorigin="anonymous"
