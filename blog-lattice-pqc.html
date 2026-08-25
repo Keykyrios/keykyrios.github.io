@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRANSMISSION_002: Lattice Cryptography — Why Grids Beat Primes | Archive [SECURE]</title>
+    <meta name="description"
+        content="Why RSA and ECC die to quantum computers, and how lattice-based cryptography survives. SVP, CVP, LWE, NTRU, Kyber, Dilithium — the full breakdown.">
+    <link rel="icon" href="https://i.imgur.com/KwODsL9.png" type="image/png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Special+Elite&display=swap');
+
+        :root {
+            --rot-brown: #2d241f;
+            --decay-green: #3a4034;
+            --rust: #a65840;
+            --paper: #cbbca5;
+            --faded-ink: #2b2b2b;
+            --spore-light: #e6ceaa;
+            --terminal-bg: #1a1814;
+        }
+
+        body {
+            background-color: #0f0e0d;
+            color: var(--paper);
+            font-family: 'Courier Prime', monospace;
+            overflow-x: hidden;
+            margin: 0;
+        }
+
+        h1,
+        h2,
+        h3,
+        .font-display {
+            font-family: 'Special Elite', cursive;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .noise-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 50;
+            opacity: 0.08;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, transparent 40%, #000000 120%);
+            pointer-events: none;
+            z-index: 40;
+        }
+
+        .scanline {
+            width: 100%;
+            height: 100px;
+            z-index: 45;
+            background: linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgba(255, 255, 255, 0.02) 50%, rgba(0, 0, 0, 0) 100%);
+            opacity: 0.1;
+            position: fixed;
+            bottom: 100%;
+            animation: scanline 10s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes scanline {
+            0% {
+                bottom: 100%
+            }
+
+            100% {
+                bottom: -100%
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1a1814
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #5c4d42
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--rust)
+        }
+
+        .blog-body {
+            background: var(--rot-brown);
+            border: 1px solid #4a3b32;
+            box-shadow: 10px 10px 30px rgba(0, 0, 0, 0.7);
+            position: relative;
+        }
+
+        .blog-body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            pointer-events: none;
+        }
+
+        .blog-body h2 {
+            font-size: 1.3rem;
+            color: #a65840;
+            border-bottom: 1px solid #4a3b32;
+            padding-bottom: 8px;
+            margin-top: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .blog-body h3 {
+            font-size: 1rem;
+            color: #e6ceaa;
+            margin-top: 1.8rem;
+            margin-bottom: 0.6rem;
+            letter-spacing: 0.06em;
+        }
+
+        .blog-body p {
+            font-size: 0.85rem;
+            line-height: 1.9;
+            color: #9c968d;
+            margin-bottom: 1rem;
+        }
+
+        .blog-body strong {
+            color: #cbbca5;
+        }
+
+        .blog-body em {
+            color: #8c7b6d;
+            font-style: italic;
+        }
+
+        .blog-body code {
+            background: #1a1814;
+            border: 1px solid #3a3530;
+            padding: 1px 6px;
+            font-size: 0.8rem;
+            color: #a65840;
+        }
+
+        .blog-body pre {
+            background: #1a1814;
+            border: 1px solid #3a3530;
+            padding: 16px;
+            overflow-x: auto;
+            font-size: 0.78rem;
+            line-height: 1.7;
+            color: #9c968d;
+            margin: 1rem 0;
+        }
+
+        .blog-body pre code {
+            background: none;
+            border: none;
+            padding: 0;
+            color: inherit;
+        }
+
+        .blog-body .math-block {
+            background: #1a1814;
+            border-left: 3px solid #a65840;
+            padding: 16px 20px;
+            margin: 1.2rem 0;
+            overflow-x: auto;
+        }
+
+        .blog-body ul,
+        .blog-body ol {
+            padding-left: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .blog-body li {
+            font-size: 0.85rem;
+            line-height: 1.8;
+            color: #9c968d;
+            margin-bottom: 0.4rem;
+        }
+
+        .blog-body li::marker {
+            color: #a65840;
+        }
+
+        .blog-body blockquote {
+            border-left: 3px solid #5c4d42;
+            padding: 8px 16px;
+            margin: 1rem 0;
+            background: rgba(26, 24, 20, 0.5);
+            color: #8c7b6d;
+            font-style: italic;
+            font-size: 0.85rem;
+        }
+
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #4a3b32, transparent);
+            margin: 2rem 0;
+            opacity: 0.5;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #5c4d42;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            text-decoration: none;
+            transition: color 0.2s;
+            font-family: 'Courier Prime', monospace;
+        }
+
+        .back-link:hover {
+            color: #a65840;
+        }
+
+        .blog-tag {
+            display: inline-block;
+            font-family: 'Courier Prime', monospace;
+            font-size: 9px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #a65840;
+            border: 1px solid #5c4d42;
+            padding: 2px 8px;
+            background: #1a1814;
+        }
+
+        .blog-stamp {
+            border: 1.5px solid #a65840;
+            color: #a65840;
+            padding: 3px 8px;
+            font-family: 'Special Elite', cursive;
+            transform: rotate(12deg);
+            opacity: 0.5;
+            font-size: 0.7rem;
+            font-weight: bold;
+            letter-spacing: 0.1em;
+        }
+
+        /* Visualization containers */
+        .vis-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background: #0f0e0d;
+            border: 1px solid #3a3530;
+            margin: 1.5rem 0;
+            overflow: hidden;
+        }
+        .vis-container canvas {
+            display: block;
+            width: 100% !important;
+            height: 100% !important;
+        }
+        .vis-label {
+            position: absolute;
+            bottom: 8px;
+            right: 12px;
+            font-family: 'Courier Prime', monospace;
+            font-size: 9px;
+            color: #5c4d42;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            pointer-events: none;
+            z-index: 5;
+        }
+        .vis-label-top {
+            position: absolute;
+            top: 8px;
+            left: 12px;
+            font-family: 'Special Elite', cursive;
+            font-size: 11px;
+            color: #a65840;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            pointer-events: none;
+            z-index: 5;
+        }
+    </style>
+</head>
+
+<body class="antialiased min-h-screen relative selection:bg-[#a65840] selection:text-black">
+    <div class="noise-overlay"></div>
+    <div class="vignette"></div>
+    <div class="scanline"></div>
+
+    <main class="relative z-10 max-w-3xl mx-auto px-6 py-12 md:py-20">
+
+        <a href="index.html" class="back-link mb-8 block">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Return to Archive
+        </a>
+
+        <header class="mb-10 space-y-4">
+            <div class="flex items-center gap-3 flex-wrap">
+                <span class="text-[10px] font-mono text-[#5c4d42] tracking-widest">TRANSMISSION_002</span>
+                <span class="blog-stamp">CLASSIFIED</span>
+            </div>
+            <h1 class="text-4xl md:text-5xl text-[#e6ceaa] leading-tight"
+                style="text-shadow: 2px 2px 0px rgba(0,0,0,0.8);">
+                Lattice Cryptography — Why Grids Beat Primes
+            </h1>
+            <div class="flex items-center gap-4 text-[10px] font-mono text-[#5c4d42]">
+                <span>2026-07-28</span><span>·</span><span>~14 MIN READ</span><span>·</span><span>CLEARANCE:
+                    CLASSIFIED</span>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <span class="blog-tag">Lattices</span><span class="blog-tag">SVP</span><span class="blog-tag">CVP</span>
+                <span class="blog-tag">LWE</span><span class="blog-tag">NTRU</span><span
+                    class="blog-tag">Dilithium</span>
+            </div>
+        </header>
+
+        <article class="blog-body p-6 md:p-10">
+
+            <p style="font-size:0.95rem; color:#cbbca5; line-height:2;">
+                Every encryption scheme you currently use is living on borrowed time.
+                Lattice-based cryptography is the replacement — not because it's trendy,
+                but because lattice problems are the only known class that resists both classical
+                and quantum attacks. This transmission covers the why, the what, and the how-hard.
+            </p>
+
+            <div class="section-divider"></div>
+
+            <h2>00 // THE DEATH OF NUMBER THEORY CRYPTO</h2>
+
+            <p>
+                Classical public-key cryptography relies on two problems:
+            </p>
+            <ul>
+                <li><strong>Integer Factorization</strong> — RSA: given \(N = pq\), find \(p\) and \(q\)</li>
+                <li><strong>Discrete Logarithm</strong> — ECC/DH: given \(g^x \bmod p\), find \(x\)</li>
+            </ul>
+            <p>
+                Both are hard classically. Both are trivial quantumly.
+            </p>
+
+            <h3>Shor's Algorithm in Two Paragraphs</h3>
+
+            <p>
+                Shor's algorithm (1994) exploits the <strong>Quantum Fourier Transform</strong> to find the period of
+                the function
+                \(f(r) = a^r \bmod N\). Once you know the period \(r\), you compute \(\gcd(a^{r/2} \pm 1, N)\) to
+                extract factors.
+                The quantum part — finding the period — runs in \(O((\log N)^2 \log \log N)\) gates. The classical part
+                is trivial.
+            </p>
+            <p>
+                For discrete logarithm on elliptic curves, Shor's generalizes directly: given points \(P\) and \(Q =
+                [k]P\),
+                the algorithm finds the scalar \(k\) in polynomial time. A 256-bit elliptic curve key, which classically
+                requires
+                \(O(2^{128})\) operations to break, becomes solvable in seconds on a CRQC. <strong>Every current TLS
+                    handshake is backdated dead</strong>.
+            </p>
+
+            <h2>01 // WHAT IS A LATTICE?</h2>
+
+            <p>
+                A <strong>lattice</strong> is a discrete additive subgroup of \(\mathbb{R}^n\). Given basis vectors
+                \(\mathbf{b}_1, \dots, \mathbf{b}_n \in \mathbb{R}^n\), the lattice is:
+            </p>
+            <div class="math-block">
+                $$\mathcal{L}(\mathbf{B}) = \left\{ \sum_{i=1}^{n} z_i \mathbf{b}_i \;\middle|\; z_i \in \mathbb{Z}
+                \right\}$$
+            </div>
+            <p>
+                Visually: imagine a perfectly regular grid of points in 2D — that's a lattice. Now imagine
+                the same structure in 500 dimensions. The points are spaced regularly, but the geometry becomes
+                impossibly complex to navigate. This is where the hardness lives.
+            </p>
+
+            <!-- 3D LATTICE VISUALIZATION -->
+            <div class="vis-container" id="lattice-vis">
+                <div class="vis-label-top">3D Lattice — Drag to Rotate</div>
+                <div class="vis-label">Shortest Vector (SVP) Highlighted · Scroll to Zoom</div>
+            </div>
+
+            <p>
+                Key insight: <strong>a lattice has many different bases</strong>, and some are "nice" (short, nearly
+                orthogonal)
+                while others are "ugly" (long, nearly parallel). Given an ugly basis, finding a nice one is essentially
+                as hard as finding the shortest vector — and that's the problem that protects your keys.
+            </p>
+
+            <h2>02 // THE HARD PROBLEMS</h2>
+
+            <h3>Shortest Vector Problem (SVP)</h3>
+            <p>
+                Given a basis \(\mathbf{B}\) for a lattice \(\mathcal{L}\), find the shortest nonzero vector
+                \(\mathbf{v} \in \mathcal{L}\). More precisely:
+            </p>
+            <div class="math-block">
+                $$\text{SVP}: \quad \text{find } \mathbf{v} \in \mathcal{L} \setminus \{\mathbf{0}\} \text{ minimizing }
+                \|\mathbf{v}\|$$
+            </div>
+            <p>
+                In 2D this is trivial — apply the Euclidean algorithm. In high dimensions,
+                the best known algorithms (BKZ, sieving) run in exponential time \(2^{O(n)}\).
+                Quantum algorithms offer at most a polynomial speedup (Grover-like), not an exponential one.
+            </p>
+
+            <h3>Closest Vector Problem (CVP)</h3>
+            <p>
+                Given a basis \(\mathbf{B}\) for \(\mathcal{L}\) and a target point \(\mathbf{t} \in \mathbb{R}^n\),
+                find the lattice point closest to \(\mathbf{t}\):
+            </p>
+            <div class="math-block">
+                $$\text{CVP}: \quad \text{find } \mathbf{v} \in \mathcal{L} \text{ minimizing } \|\mathbf{v} -
+                \mathbf{t}\|$$
+            </div>
+            <p>
+                CVP is at least as hard as SVP (there's a reduction). Both are NP-hard under randomized reductions
+                for their exact versions. Their approximate variants (finding vectors within a \(\gamma\) factor of
+                optimal)
+                are the ones actually used in cryptographic hardness assumptions.
+            </p>
+
+            <h3>Learning With Errors (LWE)</h3>
+            <p>
+                Regev's breakthrough (2005): reduce worst-case lattice problems to an average-case problem
+                that's useful for cryptography. Given \(\mathbf{A} \in \mathbb{Z}_q^{m \times n}\) (random),
+                \(\mathbf{s} \in \mathbb{Z}_q^n\) (secret), and \(\mathbf{e} \sim \chi\) (small noise):
+            </p>
+            <div class="math-block">
+                $$\text{LWE}: \quad \text{Distinguish } (\mathbf{A}, \mathbf{A}\mathbf{s} + \mathbf{e}) \text{ from }
+                (\mathbf{A}, \mathbf{u})$$
+            </div>
+            <p>
+                where \(\mathbf{u}\) is uniformly random. The key theorem: if you can solve LWE efficiently,
+                you can solve \(\widetilde{O}(\sqrt{n/\alpha})\)-approximate SVP in the worst case. This gives us
+                a <strong>worst-case to average-case reduction</strong> — the gold standard in cryptographic hardness.
+            </p>
+
+            <h2>03 // THE QUANTUM RESISTANCE ARGUMENT</h2>
+
+            <p>
+                Why don't quantum computers help with lattices?
+            </p>
+            <ul>
+                <li><strong>No algebraic structure to exploit</strong> — Shor's works because factoring and DLP have
+                    hidden subgroup structure over abelian groups. Lattice problems don't have this structure.</li>
+                <li><strong>Best quantum speedups are polynomial</strong> — Quantum search (Grover) gives \(\sqrt{}\)
+                    speedup, turning \(2^n\) into \(2^{n/2}\). For lattice sieving, this means reducing
+                    from \(2^{0.292n}\) to \(2^{0.265n}\) — still exponential.</li>
+                <li><strong>No known quantum algorithm structure</strong> — Unlike number-theoretic problems,
+                    there is no quantum circuit that naturally "sees" the lattice shortest vector.</li>
+            </ul>
+
+            <blockquote>
+                The lattice regime is the closest thing we have to a quantum-proof foundation.
+                Not because we've proven it — but because decades of cryptanalysis by the world's
+                best minds haven't dented it.
+            </blockquote>
+
+            <h2>04 // LATTICE REDUCTION: THE ATTACKER'S BEST TOOL</h2>
+
+            <p>
+                The primary attack on lattice-based schemes is <strong>lattice reduction</strong> — algorithms
+                that try to find short vectors by improving the basis.
+            </p>
+
+            <h3>LLL Algorithm</h3>
+            <p>
+                Lenstra-Lenstra-Lovász (1982): polynomial-time algorithm that finds a vector within a factor of
+                \(2^{(n-1)/2}\) of the shortest. Good enough for small dimensions, useless for cryptographic dimensions.
+            </p>
+
+            <h3>BKZ (Block Korkine-Zolotarev)</h3>
+            <p>
+                BKZ works by applying an SVP oracle to blocks of dimension \(\beta\) within the basis.
+                As \(\beta\) increases, the output quality improves but the cost grows exponentially:
+            </p>
+            <div class="math-block">
+                $$\text{BKZ-}\beta \text{ achieves approximation factor } \approx \beta^{n/(2\beta)} \text{ in time }
+                2^{O(\beta)}$$
+            </div>
+            <p>
+                The security of lattice schemes is calibrated so that the block size \(\beta\) needed to break
+                the scheme makes BKZ infeasible. For Kyber-768, this requires \(\beta \approx 600+\), making the
+                attack cost exceed \(2^{150}\) operations.
+            </p>
+
+            <h2>05 // THE LATTICE FAMILY</h2>
+
+            <h3>NTRU (1996)</h3>
+            <p>
+                One of the first practical lattice schemes, predating LWE. Keys are polynomials in
+                \(\mathbb{Z}[X]/(X^n - 1)\). The decryption uses the short secret polynomial to "unwrap"
+                the ciphertext modulo a small prime. Still competitive — NTRU-based signatures are part
+                of NIST's standardization track (FALCON).
+            </p>
+
+            <h3>Kyber / ML-KEM (KEM)</h3>
+            <p>
+                Module-LWE based. The NIST standard for key encapsulation. See <a href="blog-kyber.html"
+                    style="color:#a65840; text-decoration:underline;">TRANSMISSION_001</a> for the full breakdown.
+            </p>
+
+            <h3>Dilithium / ML-DSA (Signatures)</h3>
+            <p>
+                Module-LWE based digital signature scheme. Uses the <strong>Fiat-Shamir with Aborts</strong> paradigm:
+                the signer generates a candidate signature, checks if it leaks information about the secret key
+                (via rejection sampling), and aborts + retries if it does. This prevents statistical leakage.
+            </p>
+            <div class="math-block">
+                $$\text{Sign}: \quad \mathbf{z} = \mathbf{y} + c\mathbf{s}_1 \quad \text{(accept if }
+                \|\mathbf{z}\|_\infty < \gamma_1 - \beta \text{)}$$ </div>
+
+                    <h3>FALCON (Signatures)</h3>
+                    <p>
+                        NTRU-lattice based, uses <strong>GPV sampling</strong> over NTRU lattices via fast Fourier tree
+                        sampling.
+                        Produces compact signatures (~666 bytes at NIST Level 1) but requires floating-point arithmetic
+                        during signing — harder to implement in constant time.
+                    </p>
+
+                    <h2>06 // RING-LWE vs MODULE-LWE vs PLAIN LWE</h2>
+
+                    <p>
+                        Three flavors of LWE, trading efficiency for security margin:
+                    </p>
+                    <pre><code>VARIANT      STRUCTURE               KEYS       SPEED     SECURITY MARGIN
+──────────────────────────────────────────────────────────────────────────
+Plain LWE    Random matrix A         Massive    Slow      Highest
+Ring-LWE     Ideal lattice (ring)    Small      Fast      Questionable *
+Module-LWE   Module lattice (k×k)    Medium     Fast      Sweet spot</code></pre>
+                    <p>
+                        <em>* Ring-LWE's ideal lattice structure theoretically allows specialized attacks.
+                            None are practical yet, but the extra algebraic structure is a risk.
+                            Module-LWE (used by Kyber and Dilithium) splits the difference.</em>
+                    </p>
+
+                    <h2>07 // REAL-WORLD DEPLOYMENT STATUS</h2>
+
+                    <p>
+                        As of 2026:
+                    </p>
+                    <ul>
+                        <li><strong>NIST FIPS 203 (ML-KEM)</strong> — Finalized August 2024. Mandatory for US federal
+                            systems.</li>
+                        <li><strong>Chrome / BoringSSL</strong> — Hybrid X25519+ML-KEM-768 in TLS 1.3 since Chrome 124.
+                        </li>
+                        <li><strong>Signal Protocol</strong> — PQXDH uses ML-KEM-768 for initial key agreement since
+                            late 2023.</li>
+                        <li><strong>Apple iMessage</strong> — PQ3 protocol uses ML-KEM-768 for post-quantum ratcheting.
+                        </li>
+                        <li><strong>Cloudflare</strong> — Hybrid PQ key exchange deployed across all edge servers.</li>
+                        <li><strong>QuMail</strong> — Full Kyber KEM integration for WebRTC signaling. <em>Built
+                                different.</em></li>
+                    </ul>
+
+                    <blockquote>
+                        The migration is not coming. It's here. If your system still relies solely on
+                        ECDH or RSA key exchange, you are already behind.
+                    </blockquote>
+
+                    <h2>08 // THE REMAINING RISKS</h2>
+
+                    <p>
+                        Lattice crypto is not perfect. Open concerns:
+                    </p>
+                    <ul>
+                        <li><strong>Key sizes</strong> — ML-KEM-768 public keys are 1184 bytes vs 32 bytes for X25519.
+                            This
+                            strains constrained protocols (QUIC, DTLS, IoT).</li>
+                        <li><strong>Side channels</strong> — NTT butterfly operations and rejection sampling must be
+                            constant-time.
+                            Implementations on microcontrollers are tricky.</li>
+                        <li><strong>Algebraic attacks on structured lattices</strong> — Module/Ring structure could
+                            potentially
+                            be exploitable. No breaks yet, but the research is active.</li>
+                        <li><strong>Hybrid mode complexity</strong> — Running ECDH+ML-KEM in parallel doubles the code
+                            surface
+                            for bugs. One implementation error and the PQ layer is useless.</li>
+                    </ul>
+
+                    <div class="section-divider"></div>
+
+                    <h2>09 // THE TAKEAWAY</h2>
+
+                    <p>
+                        Lattice cryptography works because it converts the geometric hardness of high-dimensional
+                        lattice problems — problems that quantum computers cannot efficiently solve — into usable
+                        encryption, key exchange, and signatures. The math is proven (worst-case reductions exist),
+                        the implementations are deployed (Chrome, Signal, iMessage), and the migration is underway.
+                    </p>
+                    <p>
+                        The grids beat the primes because the grids don't have hidden structure for quantum machines
+                        to exploit. It's not elegant. It's not pretty. But it's alive, and RSA isn't.
+                    </p>
+
+                    <div class="section-divider"></div>
+
+                    <p style="color:#5c4d42; font-size:0.75rem; text-align:center;">
+                        END OF TRANSMISSION_002 &nbsp;·&nbsp; CLASSIFICATION: CLASSIFIED &nbsp;·&nbsp; ARCHIVE_OS v2.1.0
+                    </p>
+
+        </article>
+
+        <div class="mt-10 flex justify-between items-center">
+            <a href="blog-kyber.html" class="back-link">
+                ← Prev: Kyber KEM
+            </a>
+            <a href="blog-sovereign-math.html" class="back-link" style="color:#a65840;">
+                Next: SOVEREIGN Math →
+            </a>
+        </div>
+
+        <footer class="mt-16 text-center text-[#3a3530] text-[10px] font-mono pb-8">
+            <p>© 2026 Keykyrios All rights reserved.</p>
+        </footer>
+    </main>
+
+    <script>
+    // ═══ 3D LATTICE VISUALIZATION ═══
+    (function() {
+        const container = document.getElementById('lattice-vis');
+        if (!container) return;
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setClearColor(0x0f0e0d, 1);
+        container.appendChild(renderer.domElement);
+
+        // Lattice parameters
+        const range = 4;
+        const spacing = 1.8;
+        const group = new THREE.Group();
+
+        // Basis vectors (slightly skewed to show non-orthogonal lattice)
+        const b1 = new THREE.Vector3(1.0, 0.15, 0.1);
+        const b2 = new THREE.Vector3(0.2, 1.0, -0.1);
+        const b3 = new THREE.Vector3(-0.1, 0.15, 0.9);
+
+        // Store lattice points
+        const latticePoints = [];
+        let shortestVec = null;
+        let shortestLen = Infinity;
+
+        // Create lattice points
+        for (let i = -range; i <= range; i++) {
+            for (let j = -range; j <= range; j++) {
+                for (let k = -range; k <= range; k++) {
+                    const pos = new THREE.Vector3(
+                        (i * b1.x + j * b2.x + k * b3.x) * spacing,
+                        (i * b1.y + j * b2.y + k * b3.y) * spacing,
+                        (i * b1.z + j * b2.z + k * b3.z) * spacing
+                    );
+                    latticePoints.push(pos);
+
+                    // Track shortest nonzero vector
+                    if (!(i === 0 && j === 0 && k === 0)) {
+                        const len = pos.length();
+                        if (len < shortestLen) {
+                            shortestLen = len;
+                            shortestVec = pos.clone();
+                        }
+                    }
+                }
+            }
+        }
+
+        // Render lattice points as spheres
+        const pointGeo = new THREE.SphereGeometry(0.08, 8, 8);
+        const pointMat = new THREE.MeshBasicMaterial({ color: 0x5c4d42 });
+        const originMat = new THREE.MeshBasicMaterial({ color: 0xe6ceaa });
+
+        latticePoints.forEach(pos => {
+            const isOrigin = pos.x === 0 && pos.y === 0 && pos.z === 0;
+            const mesh = new THREE.Mesh(pointGeo, isOrigin ? originMat : pointMat);
+            mesh.position.copy(pos);
+            if (isOrigin) mesh.scale.setScalar(2.5);
+            group.add(mesh);
+        });
+
+        // Draw basis vectors from origin
+        const basisColors = [0xa65840, 0x4a7c59, 0x6b8bad];
+        [b1, b2, b3].forEach((bv, idx) => {
+            const dir = bv.clone().normalize();
+            const len = bv.length() * spacing;
+            const arrow = new THREE.ArrowHelper(dir, new THREE.Vector3(0,0,0), len, basisColors[idx], 0.25, 0.12);
+            group.add(arrow);
+        });
+
+        // Highlight the shortest vector (SVP solution) with a glowing line
+        if (shortestVec) {
+            const svpGeo = new THREE.BufferGeometry().setFromPoints([
+                new THREE.Vector3(0, 0, 0), shortestVec
+            ]);
+            const svpMat = new THREE.LineBasicMaterial({ color: 0xa65840, linewidth: 2 });
+            const svpLine = new THREE.Line(svpGeo, svpMat);
+            group.add(svpLine);
+
+            // Glow sphere at SVP endpoint
+            const glowGeo = new THREE.SphereGeometry(0.18, 12, 12);
+            const glowMat = new THREE.MeshBasicMaterial({ color: 0xa65840, transparent: true, opacity: 0.9 });
+            const glowSphere = new THREE.Mesh(glowGeo, glowMat);
+            glowSphere.position.copy(shortestVec);
+            group.add(glowSphere);
+
+            // Outer glow ring
+            const ringGeo = new THREE.RingGeometry(0.25, 0.4, 16);
+            const ringMat = new THREE.MeshBasicMaterial({ color: 0xa65840, transparent: true, opacity: 0.3, side: THREE.DoubleSide });
+            const ring = new THREE.Mesh(ringGeo, ringMat);
+            ring.position.copy(shortestVec);
+            ring.lookAt(camera.position);
+            ring.userData.isRing = true;
+            group.add(ring);
+        }
+
+        // Faint grid lines connecting nearest neighbors in one plane
+        const lineMat = new THREE.LineBasicMaterial({ color: 0x3a3530, transparent: true, opacity: 0.15 });
+        for (let i = -range; i <= range; i++) {
+            for (let j = -range; j <= range; j++) {
+                // Lines along b1 direction
+                const p1 = new THREE.Vector3(
+                    (i * b1.x + j * b2.x) * spacing,
+                    (i * b1.y + j * b2.y) * spacing,
+                    (i * b1.z + j * b2.z) * spacing
+                );
+                const p2 = new THREE.Vector3(
+                    ((i+1) * b1.x + j * b2.x) * spacing,
+                    ((i+1) * b1.y + j * b2.y) * spacing,
+                    ((i+1) * b1.z + j * b2.z) * spacing
+                );
+                if (Math.abs(i) < range) {
+                    const lineGeo = new THREE.BufferGeometry().setFromPoints([p1, p2]);
+                    group.add(new THREE.Line(lineGeo, lineMat));
+                }
+                // Lines along b2 direction
+                const p3 = new THREE.Vector3(
+                    (i * b1.x + (j+1) * b2.x) * spacing,
+                    (i * b1.y + (j+1) * b2.y) * spacing,
+                    (i * b1.z + (j+1) * b2.z) * spacing
+                );
+                if (Math.abs(j) < range) {
+                    const lineGeo2 = new THREE.BufferGeometry().setFromPoints([p1, p3]);
+                    group.add(new THREE.Line(lineGeo2, lineMat));
+                }
+            }
+        }
+
+        scene.add(group);
+        camera.position.set(8, 6, 10);
+        camera.lookAt(0, 0, 0);
+
+        // Simple orbital controls (mouse drag)
+        let isDragging = false;
+        let prevMouse = { x: 0, y: 0 };
+        let rotX = 0.3, rotY = 0.5;
+        let targetRotX = 0.3, targetRotY = 0.5;
+        let autoRotate = true;
+        let zoom = 12;
+
+        container.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            autoRotate = false;
+            prevMouse = { x: e.clientX, y: e.clientY };
+        });
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const dx = e.clientX - prevMouse.x;
+            const dy = e.clientY - prevMouse.y;
+            targetRotY += dx * 0.005;
+            targetRotX += dy * 0.005;
+            targetRotX = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, targetRotX));
+            prevMouse = { x: e.clientX, y: e.clientY };
+        });
+        window.addEventListener('mouseup', () => { isDragging = false; });
+
+        // Touch support
+        container.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            autoRotate = false;
+            prevMouse = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        }, { passive: true });
+        container.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            const dx = e.touches[0].clientX - prevMouse.x;
+            const dy = e.touches[0].clientY - prevMouse.y;
+            targetRotY += dx * 0.005;
+            targetRotX += dy * 0.005;
+            targetRotX = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, targetRotX));
+            prevMouse = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        }, { passive: true });
+        container.addEventListener('touchend', () => { isDragging = false; }, { passive: true });
+
+        // Zoom
+        container.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            zoom += e.deltaY * 0.01;
+            zoom = Math.max(5, Math.min(25, zoom));
+        }, { passive: false });
+
+        let time = 0;
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.01;
+
+            if (autoRotate) {
+                targetRotY += 0.003;
+            }
+
+            // Smooth interpolation
+            rotX += (targetRotX - rotX) * 0.08;
+            rotY += (targetRotY - rotY) * 0.08;
+
+            camera.position.x = zoom * Math.sin(rotY) * Math.cos(rotX);
+            camera.position.y = zoom * Math.sin(rotX);
+            camera.position.z = zoom * Math.cos(rotY) * Math.cos(rotX);
+            camera.lookAt(0, 0, 0);
+
+            // Pulse the SVP glow
+            group.children.forEach(child => {
+                if (child.userData.isRing) {
+                    child.lookAt(camera.position);
+                    child.scale.setScalar(1 + 0.3 * Math.sin(time * 3));
+                    child.material.opacity = 0.2 + 0.15 * Math.sin(time * 3);
+                }
+            });
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Handle resize
+        window.addEventListener('resize', () => {
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        });
+    })();
+    </script>
+</body>
+
+</html>
