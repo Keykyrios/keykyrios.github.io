@@ -429,6 +429,113 @@
         .ach-log-pbar { height: 2px; background: #2a2520; margin-top: 4px; border-radius: 1px; }
         .ach-log-pfill { height: 100%; background: #a65840; border-radius: 1px; transition: width 0.5s ease; }
 
+        /* ═══════════════════════════════════════
+           BLOG / FIELD TRANSMISSIONS
+           ═══════════════════════════════════════ */
+        .blog-card {
+            background: var(--rot-brown);
+            border: 1px solid #4a3b32;
+            box-shadow: 10px 10px 30px rgba(0,0,0,0.7);
+            position: relative;
+            transition: transform 0.2s ease-out, box-shadow 0.3s ease, border-color 0.3s ease;
+            overflow: hidden;
+        }
+        .blog-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border: 1px solid rgba(255,255,255,0.05);
+            pointer-events: none;
+        }
+        .blog-card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, #a65840, transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .blog-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 10px 14px 40px rgba(0,0,0,0.85), 0 0 20px rgba(166,88,64,0.08);
+            border-color: #a65840;
+        }
+        .blog-card:hover::after {
+            opacity: 1;
+        }
+        .blog-tag {
+            display: inline-block;
+            font-family: 'Courier Prime', monospace;
+            font-size: 9px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #a65840;
+            border: 1px solid #5c4d42;
+            padding: 2px 8px;
+            background: #1a1814;
+            white-space: nowrap;
+        }
+        .blog-stamp {
+            position: absolute;
+            top: 16px; right: 16px;
+            border: 1.5px solid #a65840;
+            color: #a65840;
+            padding: 3px 8px;
+            font-family: 'Special Elite', cursive;
+            transform: rotate(12deg);
+            opacity: 0.5;
+            font-size: 0.7rem;
+            font-weight: bold;
+            letter-spacing: 0.1em;
+            pointer-events: none;
+        }
+        .blog-date {
+            font-family: 'Courier Prime', monospace;
+            font-size: 10px;
+            color: #5c4d42;
+            letter-spacing: 0.08em;
+        }
+        .blog-excerpt {
+            font-family: 'Courier Prime', monospace;
+            font-size: 12px;
+            color: #9c968d;
+            line-height: 1.7;
+            border-left: 2px solid #a65840;
+            padding-left: 12px;
+        }
+        .blog-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: #3a4034;
+            color: #e6ceaa;
+            font-family: 'Courier Prime', monospace;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            text-decoration: none;
+            border: 1px solid #000;
+            box-shadow: 3px 3px 10px rgba(0,0,0,0.5);
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+        .blog-link:hover {
+            background: #a65840;
+            color: #0f0e0d;
+        }
+        .blog-number {
+            position: absolute;
+            top: 10px; right: 50px;
+            font-family: 'Special Elite', cursive;
+            font-size: 3.5rem;
+            color: rgba(166, 88, 64, 0.1);
+            pointer-events: none;
+            user-select: none;
+            line-height: 1;
+        }
+
 
         .report-folder {
             background: #d4cbb8;
@@ -1035,6 +1142,143 @@
                         The trick: strict <code>__slots__</code> and statistical fee-rate outlier detection cut RAM usage by orders of magnitude.
                     </p>
                 </div>
+            </div>
+        </section>
+
+        <!-- FIELD TRANSMISSIONS (Blog) -->
+        <section class="space-y-8 parallax-layer" data-speed="1.05" id="transmissions">
+            <div class="flex items-end gap-4">
+                <h2 class="text-3xl text-[#a65840]">Field Transmissions</h2>
+                <span class="text-xs font-mono text-[#5c4d42] mb-1.5">// INTERCEPTED BROADCAST LOGS</span>
+            </div>
+            <p class="text-xs font-mono text-[#5c4d42] -mt-4 max-w-2xl leading-relaxed">
+                Recovered transmissions from deep within the archive. Technical breakdowns,
+                field reports, and classified analyses. Handle with appropriate clearance.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- Transmission 001: Kyber -->
+                <article class="blog-card p-6 group">
+                    <div class="blog-number">01</div>
+                    <div class="blog-stamp">PQC</div>
+                    <div class="space-y-4 relative z-10">
+                        <div class="blog-date">2026-08-15 &nbsp;·&nbsp; TRANSMISSION_001</div>
+                        <h3 class="text-xl text-[#e6ceaa] group-hover:text-[#a65840] transition-colors font-['Special_Elite'] tracking-wide">
+                            KYBER — The Lattice Lock
+                        </h3>
+                        <p class="blog-excerpt">
+                            RSA is dead. Quantum machines will eat your keys for breakfast.
+                            Kyber KEM is the NIST-blessed replacement — here's how it works
+                            from the algebra up.
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="blog-tag">Kyber</span>
+                            <span class="blog-tag">LWE</span>
+                            <span class="blog-tag">Post-Quantum</span>
+                            <span class="blog-tag">QuMail</span>
+                        </div>
+                        <div class="flex items-center gap-4 pt-3 border-t border-[#4a3b32]">
+                            <a href="blog-kyber.html" class="blog-link">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                                Access Transmission
+                            </a>
+                            <span class="text-[9px] font-mono text-[#5c4d42]">~12 min read</span>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Transmission 002: Lattice PQC -->
+                <article class="blog-card p-6 group">
+                    <div class="blog-number">02</div>
+                    <div class="blog-stamp">CLASSIFIED</div>
+                    <div class="space-y-4 relative z-10">
+                        <div class="blog-date">2026-07-28 &nbsp;·&nbsp; TRANSMISSION_002</div>
+                        <h3 class="text-xl text-[#e6ceaa] group-hover:text-[#a65840] transition-colors font-['Special_Elite'] tracking-wide">
+                            Lattice Cryptography — Why Grids Beat Primes
+                        </h3>
+                        <p class="blog-excerpt">
+                            Shor's algorithm murders RSA and ECC. Lattice problems survive because
+                            even quantum machines can't find short vectors in high-dimensional grids.
+                            The full breakdown.
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="blog-tag">Lattices</span>
+                            <span class="blog-tag">SVP</span>
+                            <span class="blog-tag">NTRU</span>
+                            <span class="blog-tag">Shor</span>
+                        </div>
+                        <div class="flex items-center gap-4 pt-3 border-t border-[#4a3b32]">
+                            <a href="blog-lattice-pqc.html" class="blog-link">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                                Access Transmission
+                            </a>
+                            <span class="text-[9px] font-mono text-[#5c4d42]">~14 min read</span>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Transmission 003: SOVEREIGN Math -->
+                <article class="blog-card p-6 group">
+                    <div class="blog-number">03</div>
+                    <div class="blog-stamp" style="border-color:#ffd700;color:#ffd700;">RESTRICTED</div>
+                    <div class="space-y-4 relative z-10">
+                        <div class="blog-date">2026-06-12 &nbsp;·&nbsp; TRANSMISSION_003</div>
+                        <h3 class="text-xl text-[#e6ceaa] group-hover:text-[#a65840] transition-colors font-['Special_Elite'] tracking-wide">
+                            SOVEREIGN — The Math That Crashes Markets
+                        </h3>
+                        <p class="blog-excerpt">
+                            Most financial simulators are completely mid. SOVEREIGN generates
+                            endogenous flash crashes using Rough Bergomi, Hawkes processes,
+                            HJB PDEs, and persistent homology. No fake shocks.
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="blog-tag">C++20</span>
+                            <span class="blog-tag">Stochastic</span>
+                            <span class="blog-tag">Hawkes</span>
+                            <span class="blog-tag">TDA</span>
+                            <span class="blog-tag">HJB</span>
+                        </div>
+                        <div class="flex items-center gap-4 pt-3 border-t border-[#4a3b32]">
+                            <a href="blog-sovereign-math.html" class="blog-link">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                                Access Transmission
+                            </a>
+                            <span class="text-[9px] font-mono text-[#5c4d42]">~20 min read</span>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Transmission 004: Rowhammer -->
+                <article class="blog-card p-6 group">
+                    <div class="blog-number">04</div>
+                    <div class="blog-stamp" style="border-color:#c0392b;color:#c0392b;">DANGER</div>
+                    <div class="space-y-4 relative z-10">
+                        <div class="blog-date">2026-05-30 &nbsp;·&nbsp; TRANSMISSION_004</div>
+                        <h3 class="text-xl text-[#e6ceaa] group-hover:text-[#a65840] transition-colors font-['Special_Elite'] tracking-wide">
+                            Rowhammer — Flipping Bits From Userspace
+                        </h3>
+                        <p class="blog-excerpt">
+                            Your hardware is lying to you. Repeated DRAM reads flip bits in adjacent
+                            rows. A software exploit targeting physics itself. Privilege escalation
+                            from a for-loop.
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="blog-tag">DRAM</span>
+                            <span class="blog-tag">Hardware</span>
+                            <span class="blog-tag">Exploit</span>
+                            <span class="blog-tag">Priv-Esc</span>
+                        </div>
+                        <div class="flex items-center gap-4 pt-3 border-t border-[#4a3b32]">
+                            <a href="blog-rowhammer.html" class="blog-link">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                                Access Transmission
+                            </a>
+                            <span class="text-[9px] font-mono text-[#5c4d42]">~10 min read</span>
+                        </div>
+                    </div>
+                </article>
+
             </div>
         </section>
 
